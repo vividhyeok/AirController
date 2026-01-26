@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Air Controller</title>
+    <!-- Socket.IO 클라이언트 라이브러리 로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root {
+            /* Modern Dark Theme Palette */
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --surface-variant: #2d2d2d;
+            --primary-color: #a8c7fa;
+            --primary-variant: #669df6;
+            --accent-color: #4fabff;
+            --text-primary: #e2e2e2;
+            --text-secondary: #a1a1a1;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(30, 30, 30, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Glassmorphism App Container */
+        .app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            background: linear-gradient(180deg, rgba(18,18,18,0) 0%, rgba(18,18,18,1) 100%);
+        }
+
+        /* Top Bar */
+        .topbar {
+            padding: calc(var(--safe-top) + 12px) 20px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff, #a1a1a1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+
+        .status-badge.connected {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .status-badge.connected .status-dot {
+            background-color: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Tab Panels */
+        .panel {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        /* Touchpad Specifics */
+        .touchpad-container {
+            flex: 1;
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            position: relative;
+            box-shadow: inset 0 0 0 1px var(--border-color);
+            overflow: hidden;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        
+        .touchpad-container:active {
+            background: var(--surface-variant);
+        }
+
+        .touch-pattern {
+            position: absolute;
+            inset: 0;
+            opacity: 0.1;
+            background-image: radial-gradient(#fff 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .touch-hint {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-align: center;
+            opacity: 0.6;
+            line-height: 1.6;
+        }
+
+        /* Mouse Buttons */
+        .mouse-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            height: 70px;
+        }
+
+        .btn-mouse {
+            background: var(--surface-variant);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .btn-mouse:active {
+            background: #404040;
+            transform: scale(0.97);
+        }
+
+        /* Grid Layouts */
+        .grid-shortcuts {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 12px;
+        }
+
+        .card-btn {
+            background: var(--surface-variant);
+            border-radius: var(--radius-md);
+            padding: 16px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-primary);
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .card-btn:active {
+            background: #3a3a3a;
+            transform: scale(0.96);
+        }
+
+        .card-icon { font-size: 24px; margin-bottom: 4px; }
+        .card-label { font-size: 12px; font-weight: 500; opacity: 0.9; }
+
+        /* Input specific */
+        .input-wrapper {
+            background: var(--surface-variant);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .btn-send {
+            background: var(--primary-variant);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Bottom Tab Navigation */
+        .tab-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            padding: 10px 10px calc(var(--safe-bottom) + 10px);
+            background: rgba(18, 18, 18, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            opacity: 1;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            background-color: currentColor;
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+            -webkit-mask-size: contain;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+        }
+
+        /* Icons using CSS mask */
+        .icon-touch { -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>'); }
+        .icon-input { -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>'); }
+        .icon-apps { -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>'); }
+
+        /* Sliders */
+        .range-wrap {
+            margin-top: 10px;
+            padding: 15px;
+            background: var(--surface-variant);
+            border-radius: var(--radius-md);
+        }
+        .range-header {
+            display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 6px;
+            background: #444;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px; height: 20px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+
+        /* Section Header */
+        h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin: 0 0 12px 4px;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- 상단 바 -->
+        <div class="topbar">
+            <div class="app-title">Air Mouse</div>
+            <div class="status-badge" id="statusBadge">
+                <div class="status-dot"></div>
+                <span id="statusText">Disconnected</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- 1. 터치패드 패널 -->
+            <div class="panel active" id="panel-touch">
+                <div class="touchpad-container" id="touchpad">
+                    <div class="touch-pattern"></div>
+                    <div class="touch-hint">
+                        스와이프하여 이동<br>
+                        탭하여 클릭<br>
+                        두 손가락 스크롤
+                    </div>
+                </div>
+                <div class="mouse-controls">
+                    <div class="btn-mouse" onclick="emitClick('left')">L-Click</div>
+                    <div class="btn-mouse" onclick="emitClick('right')">R-Click</div>
+                </div>
+            </div>
+
+            <!-- 2. 입력 패널 -->
+            <div class="panel" id="panel-input">
+                <h2>Text Input</h2>
+                <div class="input-wrapper">
+                    <input type="text" id="textInput" placeholder="Enter text...">
+                    <button class="btn-send" onclick="sendText()">Send</button>
+                </div>
+                
+                <h2>Controls</h2>
+                <div class="grid-shortcuts" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="card-btn" onclick="emitKey('enter')">
+                        <span class="card-label">Enter</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('backspace')">
+                        <span class="card-label">Backspace</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('esc')">
+                        <span class="card-label">ESC</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('space')">
+                        <span class="card-label">Space</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('tab')">
+                        <span class="card-label">Tab</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('win')">
+                        <span class="card-label">Win</span>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 24px;">Sensitivity</h2>
+                <div class="range-wrap">
+                    <div class="range-header">
+                        <span>Pointer Speed</span>
+                        <span id="mouseVal">1.5</span>
+                    </div>
+                    <input type="range" id="mouseSens" min="0.5" max="3.0" step="0.1" value="1.5">
+                </div>
+                <div class="range-wrap">
+                    <div class="range-header">
+                        <span>Scroll Speed</span>
+                        <span id="scrollVal">15</span>
+                    </div>
+                    <input type="range" id="scrollSens" min="5" max="50" step="5" value="15">
+                </div>
+            </div>
+
+            <!-- 3. 앱 바로가기 패널 -->
+            <div class="panel" id="panel-apps">
+                <h2>Streaming</h2>
+                <div class="grid-shortcuts">
+                    <div class="card-btn" onclick="openUrl('https://www.youtube.com')">
+                        <span class="card-icon">▶</span>
+                        <span class="card-label">YouTube</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://music.youtube.com')">
+                        <span class="card-icon">🎵</span>
+                        <span class="card-label">YT Music</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://www.netflix.com')">
+                        <span class="card-icon">N</span>
+                        <span class="card-label">Netflix</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://laftel.net')">
+                        <span class="card-icon">🦄</span>
+                        <span class="card-label">Laftel</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://tvwiki.life')">
+                        <span class="card-icon">📺</span>
+                        <span class="card-label">TVWiki</span>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 24px;">Tools</h2>
+                <div class="grid-shortcuts">
+                    <div class="card-btn" onclick="openUrl('https://www.google.com')">
+                        <span class="card-label">Google</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('browserhome')">
+                        <span class="card-label">Home</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 탭 내비게이션 -->
+        <div class="tab-bar">
+            <div class="nav-item active" onclick="switchTab('touch')">
+                <div class="nav-icon icon-touch"></div>
+                <span>Touch</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('input')">
+                <div class="nav-icon icon-input"></div>
+                <span>Input</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('apps')">
+                <div class="nav-icon icon-apps"></div>
+                <span>Apps</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Socket.IO 연결 ===
+        // 같은 호스트의 루트 네임스페이스로 연결
+        const socket = io();
+
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+
+        socket.on('connect', () => {
+            statusBadge.classList.add('connected');
+            statusText.textContent = 'Connected';
+        });
+
+        socket.on('disconnect', () => {
+            statusBadge.classList.remove('connected');
+            statusText.textContent = 'Disconnected';
+        });
+
+        // === 상태 관리 변수 ===
+        let mouseSensitivity = 1.5;
+        let scrollSensitivity = 15;
+
+        // 로컬 스토리지 로드
+        if(localStorage.getItem('mouseSens')) {
+            mouseSensitivity = parseFloat(localStorage.getItem('mouseSens'));
+            document.getElementById('mouseSens').value = mouseSensitivity;
+            document.getElementById('mouseVal').textContent = mouseSensitivity;
+        }
+        if(localStorage.getItem('scrollSens')) {
+            scrollSensitivity = parseInt(localStorage.getItem('scrollSens'));
+            document.getElementById('scrollSens').value = scrollSensitivity;
+            document.getElementById('scrollVal').textContent = scrollSensitivity;
+        }
+
+        // 감도 조절 이벤트
+        document.getElementById('mouseSens').addEventListener('input', (e) => {
+            mouseSensitivity = parseFloat(e.target.value);
+            document.getElementById('mouseVal').textContent = mouseSensitivity;
+            localStorage.setItem('mouseSens', mouseSensitivity);
+        });
+
+        document.getElementById('scrollSens').addEventListener('input', (e) => {
+            scrollSensitivity = parseInt(e.target.value);
+            document.getElementById('scrollVal').textContent = scrollSensitivity;
+            localStorage.setItem('scrollSens', scrollSensitivity);
+        });
+
+        // === 탭 전환 ===
+        function switchTab(tabName) {
+            // 패널 전환
+            document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+            document.getElementById(`panel-${tabName}`).classList.add('active');
+            
+            // 내비 아이콘 전환
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            // 클릭된 요소 찾아서 active (간단 구현)
+            event.currentTarget.classList.add('active');
+        }
+
+        // === 소켓 송신 함수 ===
+        function emitClick(btn) {
+            socket.emit('click', { btn });
+            vibrate(30);
+        }
+
+        function emitKey(key) {
+            socket.emit('key', { key });
+            vibrate(20);
+        }
+
+        function openUrl(url) {
+            socket.emit('open', { url });
+            vibrate(40);
+        }
+
+        function sendText() {
+            const input = document.getElementById('textInput');
+            const text = input.value;
+            if(!text) return;
+            socket.emit('type', { text, pressEnter: true });
+            input.value = '';
+            vibrate(50);
+        }
+        
+        // 엔터키 처리
+        document.getElementById('textInput').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendText();
+        });
+
+        function vibrate(ms) {
+            if(navigator.vibrate) navigator.vibrate(ms);
+        }
+
+        // === 터치패드 로직 ===
+        const touchpad = document.getElementById('touchpad');
+        let lastX = 0;
+        let lastY = 0;
+        let isTouching = false;
+        let startTime = 0;
+        let mode = 'move'; // 'move' or 'scroll'
+        let lastScrollY = 0;
+        let hasMoved = false;
+
+        touchpad.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isTouching = true;
+            hasMoved = false;
+            startTime = Date.now();
+
+            if (e.touches.length === 2) {
+                mode = 'scroll';
+                lastScrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            } else {
+                mode = 'move';
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+            }
+        }, {passive: false});
+
+        touchpad.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (!isTouching) return;
+            
+            const duration = Date.now() - startTime;
+            // 탭 클릭 판정 (이동이 거의 없고 짧은 터치)
+            if (!hasMoved && duration < 200) {
+                if (mode === 'move') {
+                    emitClick('left');
+                } else if (mode === 'scroll') {
+                    emitClick('right');
+                }
+            }
+            isTouching = false;
+        });
+
+        touchpad.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if(!isTouching) return;
+
+            // 스크롤 모드
+            if (mode === 'scroll' || e.touches.length === 2) {
+                // 터치 개수가 바뀌면 좌표 초기화 필요할 수 있음
+                if (e.touches.length === 2) {
+                    const currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    const dy = currentY - lastScrollY;
+                    
+                    if (Math.abs(dy) > 1) {
+                        hasMoved = true;
+                        // 스크롤 방향: 손가락 위로 = 화면 아래로(음수)인데 보통 반대로 매핑됨
+                        // Windows scroll: 양수=위, 음수=아래
+                        // 스마트폰 스크롤 다운(손가락 위로) -> 내용물 아래로 -> scroll up
+                        socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) }); 
+                    }
+                    lastScrollY = currentY;
+                }
+            } 
+            // 이동 모드
+            else {
+                const currentX = e.touches[0].clientX;
+                const currentY = e.touches[0].clientY;
+                const dx = currentX - lastX;
+                const dy = currentY - lastY;
+
+                // 노이즈 제거
+                if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                    hasMoved = true;
+                    // 즉시 전송
+                    socket.emit('move', { 
+                        dx: dx * mouseSensitivity, 
+                        dy: dy * mouseSensitivity 
+                    });
+                }
+                lastX = currentX;
+                lastY = currentY;
+            }
+        }, {passive: false});
+
+    </script>
+</body>
+</html>
