@@ -7,6 +7,8 @@ Perfect for controlling your laptop from the couch when connected to a TV.
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
+![Preview](assets/preview.jpg)
+
 ## ✨ Features
 
 - 📱 **Smartphone Touchpad**: Swipe to move mouse cursor
