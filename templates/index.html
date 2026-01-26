@@ -149,6 +149,8 @@
             overflow: hidden;
             margin-bottom: 20px;
             transition: background 0.2s;
+            touch-action: none;
+            overscroll-behavior: none;
         }
         
         .touchpad-container:active {
@@ -537,27 +539,37 @@
         let mouseSensitivity = 1.5;
         let scrollSensitivity = 15;
 
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function sanitizeNumber(value, fallback, min, max) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) return fallback;
+            return clamp(num, min, max);
+        }
+
         // 로컬 스토리지 로드
         if(localStorage.getItem('mouseSens')) {
-            mouseSensitivity = parseFloat(localStorage.getItem('mouseSens'));
+            mouseSensitivity = sanitizeNumber(localStorage.getItem('mouseSens'), 1.5, 0.5, 3.0);
             document.getElementById('mouseSens').value = mouseSensitivity;
             document.getElementById('mouseVal').textContent = mouseSensitivity;
         }
         if(localStorage.getItem('scrollSens')) {
-            scrollSensitivity = parseInt(localStorage.getItem('scrollSens'));
+            scrollSensitivity = sanitizeNumber(localStorage.getItem('scrollSens'), 15, 5, 60);
             document.getElementById('scrollSens').value = scrollSensitivity;
             document.getElementById('scrollVal').textContent = scrollSensitivity;
         }
 
         // 감도 조절 이벤트
         document.getElementById('mouseSens').addEventListener('input', (e) => {
-            mouseSensitivity = parseFloat(e.target.value);
+            mouseSensitivity = sanitizeNumber(e.target.value, 1.5, 0.5, 3.0);
             document.getElementById('mouseVal').textContent = mouseSensitivity;
             localStorage.setItem('mouseSens', mouseSensitivity);
         });
 
         document.getElementById('scrollSens').addEventListener('input', (e) => {
-            scrollSensitivity = parseInt(e.target.value);
+            scrollSensitivity = sanitizeNumber(e.target.value, 15, 5, 60);
             document.getElementById('scrollVal').textContent = scrollSensitivity;
             localStorage.setItem('scrollSens', scrollSensitivity);
         });
@@ -617,9 +629,13 @@
         let mode = 'move'; // 'move' or 'scroll'
         let lastScrollY = 0;
         let hasMoved = false;
+        let pointerActive = false;
+        let lastPointerX = 0;
+        let lastPointerY = 0;
 
         touchpad.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            if (pointerActive) return;
             isTouching = true;
             hasMoved = false;
             startTime = Date.now();
@@ -636,6 +652,7 @@
 
         touchpad.addEventListener('touchend', (e) => {
             e.preventDefault();
+            if (pointerActive) return;
             if (!isTouching) return;
             
             const duration = Date.now() - startTime;
@@ -652,6 +669,7 @@
 
         touchpad.addEventListener('touchmove', (e) => {
             e.preventDefault();
+            if (pointerActive) return;
             if(!isTouching) return;
 
             // 스크롤 모드
@@ -666,7 +684,10 @@
                         // 스크롤 방향: 손가락 위로 = 화면 아래로(음수)인데 보통 반대로 매핑됨
                         // Windows scroll: 양수=위, 음수=아래
                         // 스마트폰 스크롤 다운(손가락 위로) -> 내용물 아래로 -> scroll up
-                        socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) }); 
+                        const scrollAmount = dy * (scrollSensitivity / 5);
+                        if (Number.isFinite(scrollAmount)) {
+                            socket.emit('scroll', { dy: scrollAmount });
+                        }
                     }
                     lastScrollY = currentY;
                 }
@@ -682,15 +703,72 @@
                 if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
                     hasMoved = true;
                     // 즉시 전송
-                    socket.emit('move', { 
-                        dx: dx * mouseSensitivity, 
-                        dy: dy * mouseSensitivity 
-                    });
+                    const moveX = dx * mouseSensitivity;
+                    const moveY = dy * mouseSensitivity;
+                    if (Number.isFinite(moveX) && Number.isFinite(moveY)) {
+                        socket.emit('move', { 
+                            dx: moveX, 
+                            dy: moveY 
+                        });
+                    }
                 }
                 lastX = currentX;
                 lastY = currentY;
             }
         }, {passive: false});
+
+        // 포인터 이벤트 백업 (일부 브라우저에서 touch 이벤트가 누락되는 경우 대비)
+        if ('PointerEvent' in window) {
+            touchpad.addEventListener('pointerdown', (e) => {
+                if (e.pointerType !== 'touch') return;
+                e.preventDefault();
+                pointerActive = true;
+                hasMoved = false;
+                startTime = Date.now();
+                mode = 'move';
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+                touchpad.setPointerCapture(e.pointerId);
+            }, {passive: false});
+
+            touchpad.addEventListener('pointermove', (e) => {
+                if (!pointerActive || e.pointerType !== 'touch') return;
+                e.preventDefault();
+
+                const dx = e.clientX - lastPointerX;
+                const dy = e.clientY - lastPointerY;
+
+                if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                    hasMoved = true;
+                    const moveX = dx * mouseSensitivity;
+                    const moveY = dy * mouseSensitivity;
+                    if (Number.isFinite(moveX) && Number.isFinite(moveY)) {
+                        socket.emit('move', { dx: moveX, dy: moveY });
+                    }
+                }
+
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+            }, {passive: false});
+
+            touchpad.addEventListener('pointerup', (e) => {
+                if (!pointerActive || e.pointerType !== 'touch') return;
+                e.preventDefault();
+
+                const duration = Date.now() - startTime;
+                if (!hasMoved && duration < 200) {
+                    emitClick('left');
+                }
+
+                pointerActive = false;
+                touchpad.releasePointerCapture(e.pointerId);
+            }, {passive: false});
+
+            touchpad.addEventListener('pointercancel', (e) => {
+                if (e.pointerType !== 'touch') return;
+                pointerActive = false;
+            }, {passive: false});
+        }
 
     </script>
 </body>
