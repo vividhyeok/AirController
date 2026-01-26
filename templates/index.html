@@ -149,8 +149,6 @@
             overflow: hidden;
             margin-bottom: 20px;
             transition: background 0.2s;
-            touch-action: none;
-            overscroll-behavior: none;
         }
         
         .touchpad-container:active {
@@ -375,47 +373,87 @@
                 </div>
             </div>
 
-            <!-- 2. 설정 패널 -->
-            <div class="panel" id="panel-settings">
-                <h2>Add New Shortcut</h2>
-                <div class="input-wrapper" style="flex-direction: column;">
-                    <input type="text" id="linkName" placeholder="Name (e.g. YouTube)" style="border-bottom: 1px solid var(--border-color);">
-                    <input type="text" id="linkUrl" placeholder="URL (e.g. https://youtube.com)">
-                    <button class="btn-send" onclick="addLink()" style="width: 100%; margin-top: 8px; padding: 12px;">Add Shortcut</button>
-                </div>
-
-                <h2>Input Controls</h2>
+            <!-- 2. 입력 패널 -->
+            <div class="panel" id="panel-input">
+                <h2>Text Input</h2>
                 <div class="input-wrapper">
-                    <input type="text" id="textInput" placeholder="Enter text to type...">
+                    <input type="text" id="textInput" placeholder="Enter text...">
                     <button class="btn-send" onclick="sendText()">Send</button>
                 </div>
                 
-                <h2>Keyboard Actions</h2>
+                <h2>Controls</h2>
                 <div class="grid-shortcuts" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="card-btn" onclick="emitKey('enter')"><span class="card-label">Enter</span></div>
-                    <div class="card-btn" onclick="emitKey('backspace')"><span class="card-label">Backspace</span></div>
-                    <div class="card-btn" onclick="emitKey('esc')"><span class="card-label">ESC</span></div>
-                    <div class="card-btn" onclick="emitKey('space')"><span class="card-label">Space</span></div>
-                    <div class="card-btn" onclick="emitKey('tab')"><span class="card-label">Tab</span></div>
-                    <div class="card-btn" onclick="emitKey('win')"><span class="card-label">Win</span></div>
+                    <div class="card-btn" onclick="emitKey('enter')">
+                        <span class="card-label">Enter</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('backspace')">
+                        <span class="card-label">Backspace</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('esc')">
+                        <span class="card-label">ESC</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('space')">
+                        <span class="card-label">Space</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('tab')">
+                        <span class="card-label">Tab</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('win')">
+                        <span class="card-label">Win</span>
+                    </div>
                 </div>
 
                 <h2 style="margin-top: 24px;">Sensitivity</h2>
                 <div class="range-wrap">
-                    <div class="range-header"><span>Pointer Speed</span><span id="mouseVal">1.5</span></div>
+                    <div class="range-header">
+                        <span>Pointer Speed</span>
+                        <span id="mouseVal">1.5</span>
+                    </div>
                     <input type="range" id="mouseSens" min="0.5" max="3.0" step="0.1" value="1.5">
+                </div>
+                <div class="range-wrap">
+                    <div class="range-header">
+                        <span>Scroll Speed</span>
+                        <span id="scrollVal">15</span>
+                    </div>
+                    <input type="range" id="scrollSens" min="5" max="50" step="5" value="15">
                 </div>
             </div>
 
             <!-- 3. 앱 바로가기 패널 -->
             <div class="panel" id="panel-apps">
-                <h2>My Shortcuts</h2>
-                <!-- 여기서 동적으로 생성되도록 수정 -->
-                <div class="grid-shortcuts" id="shortcuts-grid">
-                    <!-- 기본 아이템은 JS로 로드 시 덮어써질 수 있음 -->
+                <h2>Streaming</h2>
+                <div class="grid-shortcuts">
+                    <div class="card-btn" onclick="openUrl('https://www.youtube.com')">
+                        <span class="card-icon">▶</span>
+                        <span class="card-label">YouTube</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://music.youtube.com')">
+                        <span class="card-icon">🎵</span>
+                        <span class="card-label">YT Music</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://www.netflix.com')">
+                        <span class="card-icon">N</span>
+                        <span class="card-label">Netflix</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://laftel.net')">
+                        <span class="card-icon">🦄</span>
+                        <span class="card-label">Laftel</span>
+                    </div>
+                    <div class="card-btn" onclick="openUrl('https://tvwiki.life')">
+                        <span class="card-icon">📺</span>
+                        <span class="card-label">TVWiki</span>
+                    </div>
                 </div>
-                <div id="empty-msg" style="text-align:center; color: var(--text-secondary); padding: 40px; display: none;">
-                    No shortcuts added.<br>Go to Settings to add new ones.
+
+                <h2 style="margin-top: 24px;">Tools</h2>
+                <div class="grid-shortcuts">
+                    <div class="card-btn" onclick="openUrl('https://www.google.com')">
+                        <span class="card-label">Google</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('browserhome')">
+                        <span class="card-label">Home</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -424,33 +462,30 @@
         <div class="tab-bar">
             <div class="nav-item active" onclick="switchTab('touch')">
                 <div class="nav-icon icon-touch"></div>
-                <span>Mouse</span>
+                <span>Touch</span>
             </div>
-            <div class="nav-item" onclick="switchTab('settings')">
-                <div class="nav-icon icon-input" style="-webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox=%220 0 24 24%22 fill=%22none%22 xmlns=%22http://www.w3.org/2000/svg%22><path d=%22M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z%22 fill=%22black%22/></svg>');"></div>
-                <span>Settings</span>
+            <div class="nav-item" onclick="switchTab('input')">
+                <div class="nav-icon icon-input"></div>
+                <span>Input</span>
             </div>
             <div class="nav-item" onclick="switchTab('apps')">
                 <div class="nav-icon icon-apps"></div>
-                <span>Shortcuts</span>
+                <span>Apps</span>
             </div>
         </div>
     </div>
 
     <script>
         // === Socket.IO 연결 ===
+        // 같은 호스트의 루트 네임스페이스로 연결
         const socket = io();
 
         const statusBadge = document.getElementById('statusBadge');
         const statusText = document.getElementById('statusText');
 
-        let myLinks = [];
-
         socket.on('connect', () => {
             statusBadge.classList.add('connected');
             statusText.textContent = 'Connected';
-            // 연결 시 링크 목록 요청
-            socket.emit('get_links');
         });
 
         socket.on('disconnect', () => {
@@ -458,118 +493,31 @@
             statusText.textContent = 'Disconnected';
         });
 
-        socket.on('links_updated', (links) => {
-            myLinks = links || [];
-            renderShortcuts();
-        });
-
-        function renderShortcuts() {
-            const grid = document.getElementById('shortcuts-grid');
-            const msg = document.getElementById('empty-msg');
-            grid.innerHTML = '';
-            
-            if (myLinks.length === 0) {
-                msg.style.display = 'block';
-                return;
-            } else {
-                msg.style.display = 'none';
-            }
-
-            myLinks.forEach((link, index) => {
-                const div = document.createElement('div');
-                div.className = 'card-btn';
-                // Long press to delete logic could be added, but for now just click to open
-                // Let's add a small delete button inside? Or maybe Settings is for adding only?
-                // For simplicity: Settings has "Add". Shortcuts is "Run". 
-                // To delete, we might need a list in settings. 
-                
-                div.onclick = () => openUrl(link.url);
-                div.innerHTML = `
-                    <span class="card-icon">🔗</span>
-                    <span class="card-label">${link.name}</span>
-                `;
-                
-                // Add a small delete x
-                const delBtn = document.createElement('div');
-                delBtn.innerHTML = '×';
-                delBtn.style.cssText = 'position:absolute; top:2px; right:6px; color: #ff6b6b; font-weight:bold; font-size:18px; padding:4px;';
-                delBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if(confirm(`Delete "${link.name}"?`)) {
-                        deleteLink(index);
-                    }
-                };
-                div.style.position = 'relative';
-                div.appendChild(delBtn);
-
-                grid.appendChild(div);
-            });
-        }
-
-        function addLink() {
-            const nameEl = document.getElementById('linkName');
-            const urlEl = document.getElementById('linkUrl');
-            const name = nameEl.value.trim();
-            let url = urlEl.value.trim();
-
-            if (!name || !url) {
-                alert('Please enter both Name and URL');
-                return;
-            }
-            
-            if (!url.startsWith('http')) {
-                url = 'https://' + url;
-            }
-
-            myLinks.push({ name, url });
-            socket.emit('save_links', myLinks);
-            
-            nameEl.value = '';
-            urlEl.value = '';
-            alert('Shortcut Added!');
-        }
-
-        function deleteLink(index) {
-            myLinks.splice(index, 1);
-            socket.emit('save_links', myLinks);
-        }
-
-
         // === 상태 관리 변수 ===
         let mouseSensitivity = 1.5;
         let scrollSensitivity = 15;
 
-        function clamp(value, min, max) {
-            return Math.min(max, Math.max(min, value));
-        }
-
-        function sanitizeNumber(value, fallback, min, max) {
-            const num = Number(value);
-            if (!Number.isFinite(num)) return fallback;
-            return clamp(num, min, max);
-        }
-
         // 로컬 스토리지 로드
         if(localStorage.getItem('mouseSens')) {
-            mouseSensitivity = sanitizeNumber(localStorage.getItem('mouseSens'), 1.5, 0.5, 3.0);
+            mouseSensitivity = parseFloat(localStorage.getItem('mouseSens'));
             document.getElementById('mouseSens').value = mouseSensitivity;
             document.getElementById('mouseVal').textContent = mouseSensitivity;
         }
         if(localStorage.getItem('scrollSens')) {
-            scrollSensitivity = sanitizeNumber(localStorage.getItem('scrollSens'), 15, 5, 60);
+            scrollSensitivity = parseInt(localStorage.getItem('scrollSens'));
             document.getElementById('scrollSens').value = scrollSensitivity;
             document.getElementById('scrollVal').textContent = scrollSensitivity;
         }
 
         // 감도 조절 이벤트
         document.getElementById('mouseSens').addEventListener('input', (e) => {
-            mouseSensitivity = sanitizeNumber(e.target.value, 1.5, 0.5, 3.0);
+            mouseSensitivity = parseFloat(e.target.value);
             document.getElementById('mouseVal').textContent = mouseSensitivity;
             localStorage.setItem('mouseSens', mouseSensitivity);
         });
 
         document.getElementById('scrollSens').addEventListener('input', (e) => {
-            scrollSensitivity = sanitizeNumber(e.target.value, 15, 5, 60);
+            scrollSensitivity = parseInt(e.target.value);
             document.getElementById('scrollVal').textContent = scrollSensitivity;
             localStorage.setItem('scrollSens', scrollSensitivity);
         });
@@ -629,13 +577,9 @@
         let mode = 'move'; // 'move' or 'scroll'
         let lastScrollY = 0;
         let hasMoved = false;
-        let pointerActive = false;
-        let lastPointerX = 0;
-        let lastPointerY = 0;
 
         touchpad.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (pointerActive) return;
             isTouching = true;
             hasMoved = false;
             startTime = Date.now();
@@ -652,7 +596,6 @@
 
         touchpad.addEventListener('touchend', (e) => {
             e.preventDefault();
-            if (pointerActive) return;
             if (!isTouching) return;
             
             const duration = Date.now() - startTime;
@@ -669,7 +612,6 @@
 
         touchpad.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (pointerActive) return;
             if(!isTouching) return;
 
             // 스크롤 모드
@@ -684,10 +626,7 @@
                         // 스크롤 방향: 손가락 위로 = 화면 아래로(음수)인데 보통 반대로 매핑됨
                         // Windows scroll: 양수=위, 음수=아래
                         // 스마트폰 스크롤 다운(손가락 위로) -> 내용물 아래로 -> scroll up
-                        const scrollAmount = dy * (scrollSensitivity / 5);
-                        if (Number.isFinite(scrollAmount)) {
-                            socket.emit('scroll', { dy: scrollAmount });
-                        }
+                        socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) }); 
                     }
                     lastScrollY = currentY;
                 }
@@ -703,72 +642,15 @@
                 if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
                     hasMoved = true;
                     // 즉시 전송
-                    const moveX = dx * mouseSensitivity;
-                    const moveY = dy * mouseSensitivity;
-                    if (Number.isFinite(moveX) && Number.isFinite(moveY)) {
-                        socket.emit('move', { 
-                            dx: moveX, 
-                            dy: moveY 
-                        });
-                    }
+                    socket.emit('move', { 
+                        dx: dx * mouseSensitivity, 
+                        dy: dy * mouseSensitivity 
+                    });
                 }
                 lastX = currentX;
                 lastY = currentY;
             }
         }, {passive: false});
-
-        // 포인터 이벤트 백업 (일부 브라우저에서 touch 이벤트가 누락되는 경우 대비)
-        if ('PointerEvent' in window) {
-            touchpad.addEventListener('pointerdown', (e) => {
-                if (e.pointerType !== 'touch') return;
-                e.preventDefault();
-                pointerActive = true;
-                hasMoved = false;
-                startTime = Date.now();
-                mode = 'move';
-                lastPointerX = e.clientX;
-                lastPointerY = e.clientY;
-                touchpad.setPointerCapture(e.pointerId);
-            }, {passive: false});
-
-            touchpad.addEventListener('pointermove', (e) => {
-                if (!pointerActive || e.pointerType !== 'touch') return;
-                e.preventDefault();
-
-                const dx = e.clientX - lastPointerX;
-                const dy = e.clientY - lastPointerY;
-
-                if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-                    hasMoved = true;
-                    const moveX = dx * mouseSensitivity;
-                    const moveY = dy * mouseSensitivity;
-                    if (Number.isFinite(moveX) && Number.isFinite(moveY)) {
-                        socket.emit('move', { dx: moveX, dy: moveY });
-                    }
-                }
-
-                lastPointerX = e.clientX;
-                lastPointerY = e.clientY;
-            }, {passive: false});
-
-            touchpad.addEventListener('pointerup', (e) => {
-                if (!pointerActive || e.pointerType !== 'touch') return;
-                e.preventDefault();
-
-                const duration = Date.now() - startTime;
-                if (!hasMoved && duration < 200) {
-                    emitClick('left');
-                }
-
-                pointerActive = false;
-                touchpad.releasePointerCapture(e.pointerId);
-            }, {passive: false});
-
-            touchpad.addEventListener('pointercancel', (e) => {
-                if (e.pointerType !== 'touch') return;
-                pointerActive = false;
-            }, {passive: false});
-        }
 
     </script>
 </body>

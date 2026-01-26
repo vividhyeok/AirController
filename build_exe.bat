@@ -1,2 +1,2 @@
-pyinstaller --noconfirm --onefile --console --name "AirController" --add-data "templates;templates" --hidden-import=simple_websocket --hidden-import=wsproto --hidden-import=engineio.async_drivers.threading --hidden-import=qrcode --hidden-import=PIL --hidden-import=PIL._tkinter_finder --collect-all simple_websocket --collect-all flask_socketio --collect-all engineio --collect-all qrcode remote_server.py
+pyinstaller --noconfirm --onefile --console --name "AirController" --add-data "templates;templates" --hidden-import=eventlet --hidden-import=engineio.async_drivers.eventlet remote_server.py
 pause

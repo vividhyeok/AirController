@@ -4,9 +4,3 @@ pyaudio
 pyperclip
 keyboard
 setuptools
-flask
-flask-socketio
-simple-websocket
-eventlet
-qrcode[pil]
-pyinstaller

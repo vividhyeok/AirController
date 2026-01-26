@@ -1,40 +1,34 @@
 # 🎮 Air Controller
 
-Transform your smartphone into a wireless mouse & keyboard for your PC.  
-Perfect for controlling your laptop from the couch when connected to a TV.
+스마트폰을 PC의 무선 마우스 & 키보드로 변환하는 리모컨 앱입니다.  
+TV에 노트북을 연결해 사용할 때, 소파나 침대에서 편하게 PC를 제어할 수 있습니다.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
+## ✨ 주요 기능
 
-![Preview](assets/preview.jpg)
+- 📱 **스마트폰 터치패드**: 화면을 스와이프하여 마우스 커서 이동
+- 🖱️ **제스처 지원**: 
+  - 한 손가락 탭 → 왼쪽 클릭
+  - 두 손가락 탭 → 오른쪽 클릭
+  - 두 손가락 스크롤 → 페이지 스크롤
+- ⌨️ **텍스트 입력**: 스마트폰 키보드로 PC에 타이핑 (음성 입력 지원)
+- 🚀 **빠른 실행**: YouTube, Netflix, Laftel 등 자주 쓰는 사이트 원터치 실행
+- ⚡ **실시간 통신**: WebSocket 기반으로 지연 없는 빠른 반응
+- 🎨 **현대적인 UI**: 다크 모드 & Glassmorphism 디자인
+- 📱 **반응형**: 스마트폰, 태블릿, 가로/세로 모드 모두 지원
 
-## ✨ Features
+## 📥 다운로드
 
-- 📱 **Smartphone Touchpad**: Swipe to move mouse cursor
-- 🖱️ **Gesture Support**: 
-  - Single finger tap → Left click
-  - Two finger tap → Right click
-  - Two finger swipe → Page scroll
-- ⌨️ **Text Input**: Type on PC using smartphone keyboard (voice input supported)
-- 🚀 **Quick Launch**: One-touch access to YouTube, Netflix, Laftel, etc.
-- ⚡ **Real-time Communication**: WebSocket-based for instant response with zero lag
-- 🎨 **Modern UI**: Dark mode & Glassmorphism design
-- 📱 **Responsive**: Supports smartphones, tablets, landscape/portrait modes
+### 일반 사용자 (파이썬 설치 불필요)
 
-## 📥 Download
+**최신 릴리즈에서 `AirController.exe` 다운로드:**
 
-### For End Users (No Python Required)
+👉 [**다운로드 링크**](https://github.com/vividhyeok/AirController/releases/latest)
 
-**Download `AirController.exe` from the latest release:**
+1. 위 링크에서 `AirController.exe` 다운로드
+2. 실행 시 Windows Defender 경고가 나올 수 있음 → "추가 정보" → "실행" 클릭
+3. 방화벽 허용 팝업에서 "액세스 허용" 클릭
 
-👉 [**Download Link**](https://github.com/vividhyeok/AirController/releases/latest)
-
-1. Download `AirController.exe` from the link above
-2. If Windows Defender shows a warning → Click "More info" → "Run anyway"
-3. Allow firewall access when prompted
-
-### For Developers / Source Code
+### 개발자 / 소스 코드 사용
 
 ```bash
 git clone https://github.com/vividhyeok/AirController.git
@@ -43,17 +37,17 @@ pip install -r requirements.txt
 python remote_server.py
 ```
 
-## 🚀 How to Use
+## 🚀 사용 방법
 
-### Step 1: Run Server on PC
+### 1단계: PC에서 서버 실행
 
-Double-click the downloaded `AirController.exe` or run from source:
+다운로드한 `AirController.exe`를 더블클릭하거나, 소스코드를 실행합니다.
 
 ```bash
 python remote_server.py
 ```
 
-A **QR code** and **connection URL** will appear in the terminal:
+실행하면 터미널에 **QR 코드**와 **접속 주소**가 표시됩니다.
 
 ```
 --- Remote Controller URL: http://192.168.0.10:5000 ---
@@ -64,96 +58,96 @@ A **QR code** and **connection URL** will appear in the terminal:
 --------------------------------------
 ```
 
-### Step 2: Connect from Smartphone
+### 2단계: 스마트폰에서 접속
 
-**Important**: PC and smartphone must be on the **same Wi-Fi network**.
+**중요**: PC와 스마트폰이 **같은 Wi-Fi**에 연결되어 있어야 합니다.
 
-1. **Scan QR code** with your smartphone camera, or
-2. **Open browser** (Chrome, Safari, etc.) and enter the displayed URL (e.g., `http://192.168.0.10:5000`)
+1. 스마트폰 카메라 앱으로 **QR 코드 스캔**, 또는
+2. 스마트폰 브라우저(Chrome, Safari 등)에서 표시된 주소(예: `http://192.168.0.10:5000`) 직접 입력
 
-### Step 3: Use the Remote
+### 3단계: 리모컨 사용
 
-You'll see 3 tabs:
+접속하면 3개의 탭이 나타납니다:
 
-#### 🖱️ Touch (Touchpad)
-- **Swipe on dark area**: Move mouse cursor
-- **Single tap**: Left click
-- **Two finger tap**: Right click
-- **Two finger swipe**: Scroll up/down
+#### 🖱️ Touch (터치패드)
+- **검은 화면을 스와이프**: 마우스 커서 이동
+- **한 번 탭**: 왼쪽 클릭
+- **두 손가락 동시 탭**: 오른쪽 클릭
+- **두 손가락 스크롤**: 페이지 위/아래 이동
 
-#### ⌨️ Input
-- **Text input field**: Type using smartphone keyboard (voice input works!)
-- **Quick keys**: Enter, Backspace, ESC, Space, etc.
-- **Sensitivity**: Adjust mouse/scroll speed
+#### ⌨️ Input (입력)
+- **텍스트 입력창**: 스마트폰 키보드로 입력 후 전송 (음성 입력 가능!)
+- **자주 쓰는 키**: Enter, Backspace, ESC, Space 등
+- **감도 조절**: 마우스/스크롤 속도 조절
 
-#### 🚀 Apps (Shortcuts)
-- One-touch launch to YouTube, Netflix, etc.
-- Customizable (requires code modification)
+#### 🚀 Apps (바로가기)
+- 자주 가는 사이트(유튜브, 넷플릭스 등)를 원터치로 실행
+- 커스터마이징 가능 (코드 수정 필요)
 
-## 🛠️ Tech Stack
+## 🛠️ 기술 스택
 
 - **Backend**: Python, Flask, Flask-SocketIO
 - **Frontend**: HTML5, CSS3 (Glassmorphism), JavaScript (Socket.IO)
 - **Control**: PyAutoGUI, Pyperclip
 - **Build**: PyInstaller
 
-## 💡 Use Cases
+## 💡 사용 시나리오
 
-- 🛋️ Watch YouTube on TV from the couch
-- 🎬 Browse Netflix in bed without a keyboard
-- 🎮 Wireless remote for presentations
-- 🖥️ Control media center PC from anywhere in the room
+- 🛋️ TV에 노트북 연결 후 소파에서 유튜브 감상
+- 🎬 침대에 누워서 넷플릭스 시청 (키보드 없이도 OK)
+- 🎮 프레젠테이션 시 무선 리모컨으로 활용
+- 🖥️ 미디어 센터 PC를 스마트폰으로 제어
 
-## 🔧 Advanced Configuration
+## 🔧 고급 설정
 
-### Change Port
+### 포트 변경
 
-Edit `remote_server.py` to change the port number:
+`remote_server.py` 파일에서 포트 번호를 수정할 수 있습니다:
 
 ```python
-port = 5000  # Change to desired port
+port = 5000  # 원하는 포트 번호로 변경
 ```
 
-### Customize Shortcuts
+### 바로가기 사이트 커스터마이징
 
-Modify buttons and URLs in the "Apps" section of `templates/index.html`.
+`templates/index.html` 파일의 "Apps" 섹션에서 버튼과 URL을 수정할 수 있습니다.
 
-### Build .exe Yourself
+### .exe 파일 직접 빌드
 
 ```bash
 pip install pyinstaller
 .\build_exe.bat
 ```
 
-Built file will be in the `dist` folder.
+빌드된 파일은 `dist` 폴더에 생성됩니다.
 
-## 📋 System Requirements
+## 📋 시스템 요구사항
 
-- **PC**: Windows 10 or later (macOS, Linux supported via source code)
-- **Smartphone**: Modern web browser (Chrome, Safari, Samsung Internet, etc.)
-- **Network**: PC and smartphone must be on the same Wi-Fi
+- **PC**: Windows 10 이상 (macOS, Linux도 소스코드로 실행 가능)
+- **스마트폰**: 최신 웹 브라우저 (Chrome, Safari, Samsung Internet 등)
+- **네트워크**: PC와 스마트폰이 같은 Wi-Fi에 연결되어 있어야 함
 
-## 🐛 Troubleshooting
+## 🐛 문제 해결
 
-### Q: Can't connect from smartphone
-- Ensure PC and smartphone are on the same Wi-Fi network
-- Check Windows Firewall allows the program
-- Check if antivirus is blocking the connection
+### Q: 스마트폰에서 접속이 안돼요
+- PC와 스마트폰이 같은 Wi-Fi에 연결되어 있는지 확인
+- Windows 방화벽에서 프로그램 허용 여부 확인
+- 백신 프로그램이 차단하고 있는지 확인
 
-### Q: Mouse is too fast/slow
-- Go to "Input" tab → "Sensitivity" section to adjust
+### Q: 마우스가 너무 빠르거나 느려요
+- 앱의 "Input" 탭 → "Sensitivity" 섹션에서 감도 조절
 
-### Q: Text input doesn't work
-- Uses clipboard paste method (pyperclip) which works in most apps
-- May be restricted in some secure applications or games
+### Q: 한글 입력이 안돼요
+- 현재 pyperclip 기반으로 클립보드 붙여넣기 방식을 사용하므로 대부분의 앱에서 작동합니다
+- 일부 보안 프로그램이나 게임에서는 제한될 수 있습니다
 
-## 📄 License
+## 📄 라이선스
 
-MIT License - Free to use, modify, and distribute.
+MIT License - 자유롭게 사용, 수정, 배포 가능합니다.
 
-## 🙏 Contributing
+## 🙏 기여
 
-Report bugs or suggest features in [Issues](https://github.com/vividhyeok/AirController/issues)!
+버그 제보나 기능 제안은 [Issues](https://github.com/vividhyeok/AirController/issues)에 남겨주세요!
 
 ---
 
