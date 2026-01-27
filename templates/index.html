@@ -240,6 +240,13 @@
             border: 1px solid var(--border-color);
         }
 
+        .input-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
         input[type="text"] {
             flex: 1;
             background: transparent;
@@ -258,6 +265,23 @@
             padding: 0 20px;
             font-weight: 600;
             font-size: 14px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0 14px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            padding-left: 4px;
         }
 
         /* Bottom Tab Navigation */
@@ -342,6 +366,52 @@
             font-weight: 600;
         }
 
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .card-btn .card-meta {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .voice-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            padding-left: 4px;
+        }
+
+        /* Tablet / Landscape tweaks */
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 920px;
+            }
+            .panel {
+                padding: 28px;
+            }
+            .grid-shortcuts {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            }
+            .touchpad-container {
+                margin-bottom: 24px;
+            }
+            .mouse-controls {
+                height: 80px;
+            }
+            .control-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        @media (orientation: landscape) and (max-width: 1024px) {
+            .touchpad-container {
+                min-height: 240px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -376,9 +446,18 @@
             <!-- 2. 입력 패널 -->
             <div class="panel" id="panel-input">
                 <h2>Text Input</h2>
-                <div class="input-wrapper">
-                    <input type="text" id="textInput" placeholder="Enter text...">
-                    <button class="btn-send" onclick="sendText()">Send</button>
+                <div class="input-stack">
+                    <div class="input-wrapper">
+                        <input type="text" id="textInput" placeholder="Enter text...">
+                        <button class="btn-icon" id="voiceBtn" type="button">🎤</button>
+                        <button class="btn-send" onclick="sendText()">Send</button>
+                    </div>
+                    <div class="voice-status" id="voiceStatus"></div>
+                    <div class="input-wrapper">
+                        <input type="text" id="urlInput" placeholder="Paste a link to open...">
+                        <button class="btn-send" onclick="openInputUrl()">Open</button>
+                    </div>
+                    <div class="input-hint">주소 입력 시 자동으로 https:// 를 붙여 열어줍니다.</div>
                 </div>
                 
                 <h2>Controls</h2>
@@ -400,6 +479,62 @@
                     </div>
                     <div class="card-btn" onclick="emitKey('win')">
                         <span class="card-label">Win</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('up')">
+                        <span class="card-label">Up</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('down')">
+                        <span class="card-label">Down</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('left')">
+                        <span class="card-label">Left</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('right')">
+                        <span class="card-label">Right</span>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 24px;">Media</h2>
+                <div class="control-grid">
+                    <div class="card-btn" onclick="emitKey('prevtrack')">
+                        <span class="card-label">Prev Track</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('playpause')">
+                        <span class="card-label">Play/Pause</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('nexttrack')">
+                        <span class="card-label">Next Track</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('volumedown')">
+                        <span class="card-label">Vol -</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('volumemute')">
+                        <span class="card-label">Mute</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('volumeup')">
+                        <span class="card-label">Vol +</span>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 24px;">Navigation</h2>
+                <div class="control-grid">
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])">
+                        <span class="card-label">Prev Tab</span>
+                    </div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])">
+                        <span class="card-label">Next Tab</span>
+                    </div>
+                    <div class="card-btn" onclick="emitHotkey(['alt', 'left'])">
+                        <span class="card-label">Back</span>
+                    </div>
+                    <div class="card-btn" onclick="emitHotkey(['alt', 'right'])">
+                        <span class="card-label">Forward</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('f')">
+                        <span class="card-label">Fullscreen</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('f5')">
+                        <span class="card-label">Refresh</span>
                     </div>
                 </div>
 
@@ -428,6 +563,10 @@
                         <span class="card-icon">▶</span>
                         <span class="card-label">YouTube</span>
                     </div>
+                    <div class="card-btn" onclick="openUrl('https://www.youtube.com/watch?v=BRLKv8aoysQ')">
+                        <span class="card-icon">🌙</span>
+                        <span class="card-label">취침준비</span>
+                    </div>
                     <div class="card-btn" onclick="openUrl('https://music.youtube.com')">
                         <span class="card-icon">🎵</span>
                         <span class="card-label">YT Music</span>
@@ -453,6 +592,9 @@
                     </div>
                     <div class="card-btn" onclick="emitKey('browserhome')">
                         <span class="card-label">Home</span>
+                    </div>
+                    <div class="card-btn" onclick="emitSystem('sleep')">
+                        <span class="card-label">Sleep PC</span>
                     </div>
                 </div>
             </div>
@@ -545,6 +687,16 @@
             vibrate(20);
         }
 
+        function emitHotkey(keys) {
+            socket.emit('hotkey', { keys });
+            vibrate(25);
+        }
+
+        function emitSystem(action) {
+            socket.emit('system', { action });
+            vibrate(30);
+        }
+
         function openUrl(url) {
             socket.emit('open', { url });
             vibrate(40);
@@ -554,18 +706,83 @@
             const input = document.getElementById('textInput');
             const text = input.value;
             if(!text) return;
-            socket.emit('type', { text, pressEnter: true });
+            socket.emit('type', { text, pressEnter: false });
             input.value = '';
             vibrate(50);
         }
+
+        function normalizeUrl(raw) {
+            if (!raw) return '';
+            const trimmed = raw.trim();
+            if (/^https?:\/\//i.test(trimmed)) {
+                return trimmed;
+            }
+            return `https://${trimmed}`;
+        }
+
+        function openInputUrl() {
+            const input = document.getElementById('urlInput');
+            const value = input.value;
+            if (!value) return;
+            const normalized = normalizeUrl(value);
+            openUrl(normalized);
+            input.value = '';
+        }
         
         // 엔터키 처리
-        document.getElementById('textInput').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') sendText();
+        document.getElementById('textInput').addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                sendText();
+            }
+        });
+
+        document.getElementById('urlInput').addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                openInputUrl();
+            }
         });
 
         function vibrate(ms) {
             if(navigator.vibrate) navigator.vibrate(ms);
+        }
+
+        // 음성 인식 (STT)
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceStatus = document.getElementById('voiceStatus');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ko-KR';
+            recognition.interimResults = false;
+
+            recognition.addEventListener('start', () => {
+                voiceStatus.textContent = '듣는 중...';
+            });
+            recognition.addEventListener('end', () => {
+                voiceStatus.textContent = '';
+            });
+            recognition.addEventListener('result', (event) => {
+                const transcript = event.results[0][0].transcript;
+                const input = document.getElementById('textInput');
+                input.value = transcript;
+                voiceStatus.textContent = '음성 입력 완료';
+            });
+            recognition.addEventListener('error', () => {
+                voiceStatus.textContent = '음성 인식 오류';
+            });
+
+            voiceBtn.addEventListener('click', () => {
+                recognition.start();
+                vibrate(20);
+            });
+        } else {
+            voiceBtn.disabled = true;
+            voiceBtn.textContent = '🚫';
+            voiceStatus.textContent = '음성 입력 미지원 브라우저';
         }
 
         // === 터치패드 로직 ===
