@@ -1,5 +1,8 @@
 import sys
 import os
+import base64
+import io
+import subprocess
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 import pyautogui
@@ -25,6 +28,25 @@ pyautogui.FAILSAFE = False
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/qr')
+def qr_page():
+    controller_url = app.config.get('CONTROLLER_URL')
+    if not controller_url:
+        local_ip = get_local_ip()
+        port = app.config.get('PORT', 5000)
+        controller_url = f"http://{local_ip}:{port}"
+
+    qr = qrcode.QRCode(border=1)
+    qr.add_data(controller_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    qr_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    return render_template('qr.html', controller_url=controller_url, qr_data=qr_data)
 
 # === WebSocket 이벤트 핸들러 ===
 
@@ -74,6 +96,22 @@ def handle_key(data):
     if key:
         pyautogui.press(key, _pause=False)
 
+@socketio.on('hotkey')
+def handle_hotkey(data):
+    keys = data.get('keys', [])
+    if keys:
+        pyautogui.hotkey(*keys, _pause=False)
+
+@socketio.on('system')
+def handle_system(data):
+    action = data.get('action', '')
+    if action == 'sleep' and sys.platform.startswith('win'):
+        subprocess.run(
+            ["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"],
+            shell=True,
+            check=False,
+        )
+
 @socketio.on('open')
 def handle_open(data):
     url = data.get('url', '')
@@ -103,6 +141,13 @@ if __name__ == '__main__':
     local_ip = get_local_ip()
     port = 5000
     url = f"http://{local_ip}:{port}"
+
+    app.config['CONTROLLER_URL'] = url
+    app.config['PORT'] = port
     
     print_qr(url)
+    try:
+        webbrowser.open_new_tab(f"http://127.0.0.1:{port}/qr")
+    except Exception:
+        pass
     socketio.run(app, host='0.0.0.0', port=port, debug=False)
