@@ -45,6 +45,7 @@
             margin: 0;
             height: 100dvh;
             overflow: hidden;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
         }
@@ -161,6 +162,15 @@
             opacity: 0.1;
             background-image: radial-gradient(#fff 1px, transparent 1px);
             background-size: 24px 24px;
+        }
+
+        .scroll-strip {
+             position: absolute;
+             top: 0; bottom: 0; right: 0;
+             width: 15%;
+             background: rgba(255,255,255,0.03);
+             border-left: 1px solid rgba(255,255,255,0.05);
+             pointer-events: none;
         }
 
         .touch-hint {
@@ -431,10 +441,11 @@
             <div class="panel active" id="panel-touch">
                 <div class="touchpad-container" id="touchpad">
                     <div class="touch-pattern"></div>
+                    <div class="scroll-strip"></div>
                     <div class="touch-hint">
-                        스와이프하여 이동<br>
-                        탭하여 클릭<br>
-                        두 손가락 스크롤
+                        스와이프: 이동<br>
+                        탭: 클릭<br>
+                        우측 가장자리: 스크롤
                     </div>
                 </div>
                 <div class="mouse-controls">
@@ -496,22 +507,40 @@
 
                 <h2 style="margin-top: 24px;">Media</h2>
                 <div class="control-grid">
-                    <div class="card-btn" onclick="emitKey('prevtrack')">
-                        <span class="card-label">Prev Track</span>
+                    <div class="card-btn" onclick="emitKey('left')">
+                         <span class="card-icon">⏪</span>
+                        <span class="card-label">-5s</span>
                     </div>
                     <div class="card-btn" onclick="emitKey('playpause')">
+                         <span class="card-icon">⏯</span>
                         <span class="card-label">Play/Pause</span>
                     </div>
-                    <div class="card-btn" onclick="emitKey('nexttrack')">
-                        <span class="card-label">Next Track</span>
+                    <div class="card-btn" onclick="emitKey('right')">
+                         <span class="card-icon">⏩</span>
+                        <span class="card-label">+5s</span>
                     </div>
-                    <div class="card-btn" onclick="emitKey('volumedown')">
-                        <span class="card-label">Vol -</span>
+                    <div class="card-btn" onclick="emitKey('prevtrack')">
+                         <span class="card-icon">⏮</span>
+                        <span class="card-label">Prev</span>
                     </div>
                     <div class="card-btn" onclick="emitKey('volumemute')">
+                         <span class="card-icon">🔇</span>
                         <span class="card-label">Mute</span>
                     </div>
+                    <div class="card-btn" onclick="emitKey('nexttrack')">
+                         <span class="card-icon">⏭</span>
+                        <span class="card-label">Next</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('volumedown')">
+                         <span class="card-icon">🔉</span>
+                        <span class="card-label">Vol -</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('space')">
+                         <span class="card-icon">␣</span>
+                        <span class="card-label">Space</span>
+                    </div>
                     <div class="card-btn" onclick="emitKey('volumeup')">
+                         <span class="card-icon">🔊</span>
                         <span class="card-label">Vol +</span>
                     </div>
                 </div>
@@ -542,9 +571,9 @@
                 <div class="range-wrap">
                     <div class="range-header">
                         <span>Pointer Speed</span>
-                        <span id="mouseVal">1.5</span>
+                        <span id="mouseVal">2.5</span>
                     </div>
-                    <input type="range" id="mouseSens" min="0.5" max="3.0" step="0.1" value="1.5">
+                    <input type="range" id="mouseSens" min="1.0" max="5.0" step="0.5" value="2.5">
                 </div>
                 <div class="range-wrap">
                     <div class="range-header">
@@ -579,10 +608,19 @@
                         <span class="card-icon">🦄</span>
                         <span class="card-label">Laftel</span>
                     </div>
-                    <div class="card-btn" onclick="openUrl('https://tvwiki.life')">
+                    <div class="card-btn" onclick="openUrl('https://tvwiki4.net')">
                         <span class="card-icon">📺</span>
                         <span class="card-label">TVWiki</span>
                     </div>
+                    <div class="card-btn" onclick="openUrl('https://anilife.app/home')">
+                        <span class="card-icon">🅰️</span>
+                        <span class="card-label">AniLife</span>
+                    </div>
+                </div>
+
+                <div class="input-wrapper" style="margin-top: 20px; margin-bottom: 24px;">
+                    <input type="text" id="appUrlInput" placeholder="https://..." style="width: 100%;">
+                    <button class="btn-send" onclick="openAppUrl()">Open</button>
                 </div>
 
                 <h2 style="margin-top: 24px;">Tools</h2>
@@ -693,6 +731,9 @@
         }
 
         function emitSystem(action) {
+            if (action === 'sleep') {
+                if (!confirm('PC를 절전 모드로 전환할까요?')) return;
+            }
             socket.emit('system', { action });
             vibrate(30);
         }
@@ -722,6 +763,15 @@
 
         function openInputUrl() {
             const input = document.getElementById('urlInput');
+            const value = input.value;
+            if (!value) return;
+            const normalized = normalizeUrl(value);
+            openUrl(normalized);
+            input.value = '';
+        }
+
+        function openAppUrl() {
+            const input = document.getElementById('appUrlInput');
             const value = input.value;
             if (!value) return;
             const normalized = normalizeUrl(value);
@@ -801,13 +851,22 @@
             hasMoved = false;
             startTime = Date.now();
 
-            if (e.touches.length === 2) {
+            const rect = touchpad.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+
+            // 우측 15% 영역 또는 두 손가락
+            if ((e.touches.length === 1 && x > rect.width * 0.85) || e.touches.length === 2) {
                 mode = 'scroll';
-                lastScrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                if(e.touches.length === 2) {
+                    lastScrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                } else {
+                    lastScrollY = touch.clientY;
+                }
             } else {
                 mode = 'move';
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
+                lastX = touch.clientX;
+                lastY = touch.clientY;
             }
         }, {passive: false});
 
@@ -816,12 +875,11 @@
             if (!isTouching) return;
             
             const duration = Date.now() - startTime;
-            // 탭 클릭 판정 (이동이 거의 없고 짧은 터치)
             if (!hasMoved && duration < 200) {
                 if (mode === 'move') {
                     emitClick('left');
                 } else if (mode === 'scroll') {
-                    emitClick('right');
+                    emitClick('right'); // 스크롤바 탭 시 우클릭 효과? or just nothing. User didn't specify. Keeping original behavior (scroll mode tap -> right click)
                 }
             }
             isTouching = false;
@@ -831,34 +889,30 @@
             e.preventDefault();
             if(!isTouching) return;
 
-            // 스크롤 모드
-            if (mode === 'scroll' || e.touches.length === 2) {
-                // 터치 개수가 바뀌면 좌표 초기화 필요할 수 있음
+            if (mode === 'scroll') {
+                let currentY;
                 if (e.touches.length === 2) {
-                    const currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                    const dy = currentY - lastScrollY;
-                    
-                    if (Math.abs(dy) > 1) {
-                        hasMoved = true;
-                        // 스크롤 방향: 손가락 위로 = 화면 아래로(음수)인데 보통 반대로 매핑됨
-                        // Windows scroll: 양수=위, 음수=아래
-                        // 스마트폰 스크롤 다운(손가락 위로) -> 내용물 아래로 -> scroll up
-                        socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) }); 
-                    }
+                     currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                } else {
+                     currentY = e.touches[0].clientY;
+                }
+
+                const dy = currentY - lastScrollY;
+                
+                if (Math.abs(dy) > 1) {
+                    hasMoved = true;
+                    socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) }); 
                     lastScrollY = currentY;
                 }
             } 
-            // 이동 모드
             else {
                 const currentX = e.touches[0].clientX;
                 const currentY = e.touches[0].clientY;
                 const dx = currentX - lastX;
                 const dy = currentY - lastY;
 
-                // 노이즈 제거
                 if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
                     hasMoved = true;
-                    // 즉시 전송
                     socket.emit('move', { 
                         dx: dx * mouseSensitivity, 
                         dy: dy * mouseSensitivity 

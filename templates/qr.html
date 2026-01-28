@@ -3,95 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Controller QR</title>
+    <title>Air Controller Connection</title>
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f1115;
-            --card: #1a1f2b;
-            --accent: #77b7ff;
-            --text: #eef2f6;
-            --muted: #9aa4b2;
+            --bg: #121212;
+            --surface: #1e1e1e;
+            --primary: #5b9bd5;
+            --text-main: #ffffff;
+            --text-sub: #a0a0a0;
         }
-        * { box-sizing: border-box; }
+
         body {
             margin: 0;
-            font-family: "Segoe UI", system-ui, sans-serif;
-            background: radial-gradient(circle at top, #1c2230 0%, #0f1115 60%);
-            color: var(--text);
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            padding: 24px;
         }
+
         .card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 28px;
-            max-width: 520px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 360px;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.08);
         }
-        h1 {
-            font-size: 22px;
-            margin: 0 0 12px;
+
+        .icon-wrap {
+            width: 64px; height: 64px;
+            background: rgba(91, 155, 213, 0.1);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
         }
-        p {
-            margin: 0 0 20px;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-        .qr-wrap {
+        .icon-wrap span { font-size: 32px; }
+
+        h1 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
+        p { margin: 0 0 24px; color: var(--text-sub); font-size: 14px; line-height: 1.5; }
+
+        .qr-frame {
             background: white;
+            padding: 12px;
             border-radius: 16px;
-            padding: 16px;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+        .qr-frame img { display: block; width: 180px; height: 180px; }
+
+        .url-pill {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 20px;
+            border-radius: 99px;
+            color: var(--primary);
+            font-family: monospace;
+            font-size: 14px;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .qr-wrap img {
-            width: 220px;
-            height: 220px;
-        }
-        .url {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+
+        .info-grid {
+            margin-top: 32px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
-            background: rgba(255,255,255,0.06);
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            word-break: break-all;
         }
-        .pill {
-            background: rgba(119,183,255,0.2);
-            color: var(--accent);
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+        .info-item {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            font-size: 12px; color: var(--text-sub);
         }
-        .tip {
-            margin-top: 16px;
-            font-size: 13px;
-            color: var(--muted);
-        }
+        .info-item .material-icons-round { font-size: 20px; color: var(--text-main); }
+
     </style>
 </head>
 <body>
     <div class="card">
-        <span class="pill">Air Controller</span>
-        <h1>스마트폰으로 QR 스캔</h1>
-        <p>PC와 스마트폰이 같은 Wi-Fi에 연결되어 있어야 합니다. QR을 스캔하거나 아래 주소를 직접 입력하세요.</p>
-        <div class="qr-wrap">
-            <img src="data:image/png;base64,{{ qr_data }}" alt="Air Controller QR Code">
+        <div class="icon-wrap">
+            <span class="material-icons-round">phonelink_setup</span>
         </div>
-        <div class="url">{{ controller_url }}</div>
-        <div class="tip">스캔이 어려우면 주소를 복사해 스마트폰 브라우저에 입력해 주세요.</div>
+        <h1>PC 리모컨 연결</h1>
+        <p>스마트폰 카메라로 아래 QR 코드를<br>스캔하여 접속하세요.</p>
+        
+        <div class="qr-frame">
+            <img src="data:image/png;base64,{{ qr_data }}" alt="QR Code">
+        </div>
+
+        <div>
+            <div class="url-pill">
+                <span class="material-icons-round" style="font-size:16px;">link</span>
+                {{ controller_url }}
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="material-icons-round">wifi</span>
+                <span>Wi-Fi 연결 확인</span>
+            </div>
+            <div class="info-item">
+                <span class="material-icons-round">open_in_browser</span>
+                <span>대소문자 구분</span>
+            </div>
+        </div>
     </div>
 </body>
 </html>

@@ -4,3 +4,6 @@ pyaudio
 pyperclip
 keyboard
 setuptools
+Flask
+Flask-SocketIO
+eventlet

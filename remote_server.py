@@ -134,7 +134,11 @@ def print_qr(url):
     qr.add_data(url)
     qr.make()
     print(f"\n--- Remote Controller URL: {url} ---")
-    qr.print_ascii(invert=True)
+    try:
+        qr.print_ascii(invert=True)
+    except UnicodeEncodeError:
+        for row in qr.get_matrix():
+            print(''.join('##' if cell else '  ' for cell in row))
     print("--------------------------------------\n")
 
 if __name__ == '__main__':
@@ -150,4 +154,4 @@ if __name__ == '__main__':
         webbrowser.open_new_tab(f"http://127.0.0.1:{port}/qr")
     except Exception:
         pass
-    socketio.run(app, host='0.0.0.0', port=port, debug=False)
+    socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)
