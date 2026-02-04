@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,11 +25,11 @@
             --border-color: rgba(255, 255, 255, 0.1);
             --glass-bg: rgba(30, 30, 30, 0.7);
             --glass-border: rgba(255, 255, 255, 0.08);
-            
+
             --radius-lg: 24px;
             --radius-md: 16px;
             --radius-sm: 12px;
-            
+
             --safe-top: env(safe-area-inset-top, 20px);
             --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
@@ -59,7 +61,7 @@
             max-width: 600px;
             margin: 0 auto;
             position: relative;
-            background: linear-gradient(180deg, rgba(18,18,18,0) 0%, rgba(18,18,18,1) 100%);
+            background: linear-gradient(180deg, rgba(18, 18, 18, 0) 0%, rgba(18, 18, 18, 1) 100%);
         }
 
         /* Top Bar */
@@ -70,7 +72,8 @@
             justify-content: space-between;
             background: rgba(18, 18, 18, 0.95);
             backdrop-filter: blur(10px);
-            z-index: 10;
+            z-index: 100;
+            position: relative;
         }
 
         .app-title {
@@ -108,6 +111,7 @@
             color: #4ade80;
             border: 1px solid rgba(34, 197, 94, 0.2);
         }
+
         .status-badge.connected .status-dot {
             background-color: #22c55e;
             box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
@@ -123,7 +127,10 @@
         /* Tab Panels */
         .panel {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             display: flex;
             flex-direction: column;
             opacity: 0;
@@ -151,7 +158,7 @@
             margin-bottom: 20px;
             transition: background 0.2s;
         }
-        
+
         .touchpad-container:active {
             background: var(--surface-variant);
         }
@@ -165,17 +172,20 @@
         }
 
         .scroll-strip {
-             position: absolute;
-             top: 0; bottom: 0; right: 0;
-             width: 15%;
-             background: rgba(255,255,255,0.03);
-             border-left: 1px solid rgba(255,255,255,0.05);
-             pointer-events: none;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            width: 15%;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: none;
         }
 
         .touch-hint {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
             color: var(--text-secondary);
             font-size: 13px;
@@ -230,14 +240,22 @@
             transition: 0.2s;
             border: 1px solid transparent;
         }
-        
+
         .card-btn:active {
             background: #3a3a3a;
             transform: scale(0.96);
         }
 
-        .card-icon { font-size: 24px; margin-bottom: 4px; }
-        .card-label { font-size: 12px; font-weight: 500; opacity: 0.9; }
+        .card-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .card-label {
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
 
         /* Input specific */
         .input-wrapper {
@@ -257,6 +275,24 @@
             margin-bottom: 20px;
         }
 
+        /* Text Input Container - Responsive Layout */
+        .text-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .text-input-row {
+            background: var(--surface-variant);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            border: 1px solid var(--border-color);
+            align-items: center;
+        }
+
         input[type="text"] {
             flex: 1;
             background: transparent;
@@ -265,6 +301,7 @@
             padding: 12px;
             font-size: 16px;
             outline: none;
+            min-width: 0;
         }
 
         .btn-send {
@@ -275,6 +312,24 @@
             padding: 0 20px;
             font-weight: 600;
             font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .btn-send-full {
+            background: var(--primary-variant);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .btn-send-full:active {
+            background: #5580cc;
+            transform: scale(0.98);
         }
 
         .btn-icon {
@@ -285,6 +340,21 @@
             padding: 0 14px;
             font-weight: 600;
             font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .btn-icon-compact {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
         .input-hint {
@@ -299,9 +369,11 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             padding: 10px 10px calc(var(--safe-bottom) + 10px);
-            background: rgba(18, 18, 18, 0.9);
+            background: rgba(18, 18, 18, 0.95);
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--border-color);
+            z-index: 100;
+            position: relative;
         }
 
         .nav-item {
@@ -336,9 +408,17 @@
         }
 
         /* Icons using CSS mask */
-        .icon-touch { -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>'); }
-        .icon-input { -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>'); }
-        .icon-apps { -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>'); }
+        .icon-touch {
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
+        }
+
+        .icon-input {
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
+        }
+
+        .icon-apps {
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
+        }
 
         /* Sliders */
         .range-wrap {
@@ -347,9 +427,14 @@
             background: var(--surface-variant);
             border-radius: var(--radius-md);
         }
+
         .range-header {
-            display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
         }
+
         input[type=range] {
             width: 100%;
             height: 6px;
@@ -358,12 +443,14 @@
             outline: none;
             -webkit-appearance: none;
         }
+
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 20px; height: 20px;
+            width: 20px;
+            height: 20px;
             background: var(--primary-color);
             border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
         /* Section Header */
@@ -399,18 +486,23 @@
             .app-container {
                 max-width: 920px;
             }
+
             .panel {
                 padding: 28px;
             }
+
             .grid-shortcuts {
                 grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             }
+
             .touchpad-container {
                 margin-bottom: 24px;
             }
+
             .mouse-controls {
                 height: 80px;
             }
+
             .control-grid {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
             }
@@ -421,9 +513,9 @@
                 min-height: 240px;
             }
         }
-
     </style>
 </head>
+
 <body>
 
     <div class="app-container">
@@ -456,22 +548,79 @@
 
             <!-- 2. 입력 패널 -->
             <div class="panel" id="panel-input">
-                <h2>Text Input</h2>
-                <div class="input-stack">
-                    <div class="input-wrapper">
+                <h2>Media</h2>
+                <div class="control-grid">
+                    <div class="card-btn" onclick="emitKey('left')">
+                        <span class="card-icon">⏪</span>
+                        <span class="card-label">-5s</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('playpause')">
+                        <span class="card-icon">⏯</span>
+                        <span class="card-label">Play/Pause</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('right')">
+                        <span class="card-icon">⏩</span>
+                        <span class="card-label">+5s</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('prevtrack')">
+                        <span class="card-icon">⏮</span>
+                        <span class="card-label">Prev</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('volumemute')">
+                        <span class="card-icon">🔇</span>
+                        <span class="card-label">Mute</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('nexttrack')">
+                        <span class="card-icon">⏭</span>
+                        <span class="card-label">Next</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('volumedown')">
+                        <span class="card-icon">🔉</span>
+                        <span class="card-label">Vol -</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('space')">
+                        <span class="card-icon">␣</span>
+                        <span class="card-label">Space</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('volumeup')">
+                        <span class="card-icon">🔊</span>
+                        <span class="card-label">Vol +</span>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 24px;">Navigation</h2>
+                <div class="control-grid">
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])">
+                        <span class="card-label">Prev Tab</span>
+                    </div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])">
+                        <span class="card-label">Next Tab</span>
+                    </div>
+                    <div class="card-btn" onclick="emitHotkey(['alt', 'left'])">
+                        <span class="card-label">Back</span>
+                    </div>
+                    <div class="card-btn" onclick="emitHotkey(['alt', 'right'])">
+                        <span class="card-label">Forward</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('f')">
+                        <span class="card-label">Fullscreen</span>
+                    </div>
+                    <div class="card-btn" onclick="emitKey('f5')">
+                        <span class="card-label">Refresh</span>
+                    </div>
+                </div>
+
+                <h2 style="margin-top: 24px;">Text Input</h2>
+                <div class="text-input-container">
+                    <div class="text-input-row">
                         <input type="text" id="textInput" placeholder="Enter text...">
-                        <button class="btn-icon" id="voiceBtn" type="button">🎤</button>
-                        <button class="btn-send" onclick="sendText()">Send</button>
+                        <button class="btn-icon-compact" id="voiceBtn" type="button">🎤</button>
                     </div>
                     <div class="voice-status" id="voiceStatus"></div>
-                    <div class="input-wrapper">
-                        <input type="text" id="urlInput" placeholder="Paste a link to open...">
-                        <button class="btn-send" onclick="openInputUrl()">Open</button>
-                    </div>
-                    <div class="input-hint">주소 입력 시 자동으로 https:// 를 붙여 열어줍니다.</div>
+                    <button class="btn-send-full" onclick="sendText()">Send</button>
                 </div>
-                
-                <h2>Controls</h2>
+
+                <h2 style="margin-top: 24px;">Controls</h2>
                 <div class="grid-shortcuts" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="card-btn" onclick="emitKey('enter')">
                         <span class="card-label">Enter</span>
@@ -502,68 +651,6 @@
                     </div>
                     <div class="card-btn" onclick="emitKey('right')">
                         <span class="card-label">Right</span>
-                    </div>
-                </div>
-
-                <h2 style="margin-top: 24px;">Media</h2>
-                <div class="control-grid">
-                    <div class="card-btn" onclick="emitKey('left')">
-                         <span class="card-icon">⏪</span>
-                        <span class="card-label">-5s</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('playpause')">
-                         <span class="card-icon">⏯</span>
-                        <span class="card-label">Play/Pause</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('right')">
-                         <span class="card-icon">⏩</span>
-                        <span class="card-label">+5s</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('prevtrack')">
-                         <span class="card-icon">⏮</span>
-                        <span class="card-label">Prev</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('volumemute')">
-                         <span class="card-icon">🔇</span>
-                        <span class="card-label">Mute</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('nexttrack')">
-                         <span class="card-icon">⏭</span>
-                        <span class="card-label">Next</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('volumedown')">
-                         <span class="card-icon">🔉</span>
-                        <span class="card-label">Vol -</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('space')">
-                         <span class="card-icon">␣</span>
-                        <span class="card-label">Space</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('volumeup')">
-                         <span class="card-icon">🔊</span>
-                        <span class="card-label">Vol +</span>
-                    </div>
-                </div>
-
-                <h2 style="margin-top: 24px;">Navigation</h2>
-                <div class="control-grid">
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])">
-                        <span class="card-label">Prev Tab</span>
-                    </div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])">
-                        <span class="card-label">Next Tab</span>
-                    </div>
-                    <div class="card-btn" onclick="emitHotkey(['alt', 'left'])">
-                        <span class="card-label">Back</span>
-                    </div>
-                    <div class="card-btn" onclick="emitHotkey(['alt', 'right'])">
-                        <span class="card-label">Forward</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('f')">
-                        <span class="card-label">Fullscreen</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('f5')">
-                        <span class="card-label">Refresh</span>
                     </div>
                 </div>
 
@@ -678,12 +765,12 @@
         let scrollSensitivity = 15;
 
         // 로컬 스토리지 로드
-        if(localStorage.getItem('mouseSens')) {
+        if (localStorage.getItem('mouseSens')) {
             mouseSensitivity = parseFloat(localStorage.getItem('mouseSens'));
             document.getElementById('mouseSens').value = mouseSensitivity;
             document.getElementById('mouseVal').textContent = mouseSensitivity;
         }
-        if(localStorage.getItem('scrollSens')) {
+        if (localStorage.getItem('scrollSens')) {
             scrollSensitivity = parseInt(localStorage.getItem('scrollSens'));
             document.getElementById('scrollSens').value = scrollSensitivity;
             document.getElementById('scrollVal').textContent = scrollSensitivity;
@@ -707,7 +794,7 @@
             // 패널 전환
             document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
             document.getElementById(`panel-${tabName}`).classList.add('active');
-            
+
             // 내비 아이콘 전환
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             // 클릭된 요소 찾아서 active (간단 구현)
@@ -746,7 +833,7 @@
         function sendText() {
             const input = document.getElementById('textInput');
             const text = input.value;
-            if(!text) return;
+            if (!text) return;
             socket.emit('type', { text, pressEnter: false });
             input.value = '';
             vibrate(50);
@@ -761,15 +848,6 @@
             return `https://${trimmed}`;
         }
 
-        function openInputUrl() {
-            const input = document.getElementById('urlInput');
-            const value = input.value;
-            if (!value) return;
-            const normalized = normalizeUrl(value);
-            openUrl(normalized);
-            input.value = '';
-        }
-
         function openAppUrl() {
             const input = document.getElementById('appUrlInput');
             const value = input.value;
@@ -778,24 +856,17 @@
             openUrl(normalized);
             input.value = '';
         }
-        
+
         // 엔터키 처리
         document.getElementById('textInput').addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
+            if (e.key === 'Enter') {
                 e.preventDefault();
                 sendText();
             }
         });
 
-        document.getElementById('urlInput').addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-                e.preventDefault();
-                openInputUrl();
-            }
-        });
-
         function vibrate(ms) {
-            if(navigator.vibrate) navigator.vibrate(ms);
+            if (navigator.vibrate) navigator.vibrate(ms);
         }
 
         // 음성 인식 (STT)
@@ -858,7 +929,7 @@
             // 우측 15% 영역 또는 두 손가락
             if ((e.touches.length === 1 && x > rect.width * 0.85) || e.touches.length === 2) {
                 mode = 'scroll';
-                if(e.touches.length === 2) {
+                if (e.touches.length === 2) {
                     lastScrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
                 } else {
                     lastScrollY = touch.clientY;
@@ -868,12 +939,12 @@
                 lastX = touch.clientX;
                 lastY = touch.clientY;
             }
-        }, {passive: false});
+        }, { passive: false });
 
         touchpad.addEventListener('touchend', (e) => {
             e.preventDefault();
             if (!isTouching) return;
-            
+
             const duration = Date.now() - startTime;
             if (!hasMoved && duration < 200) {
                 if (mode === 'move') {
@@ -887,24 +958,24 @@
 
         touchpad.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if(!isTouching) return;
+            if (!isTouching) return;
 
             if (mode === 'scroll') {
                 let currentY;
                 if (e.touches.length === 2) {
-                     currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
                 } else {
-                     currentY = e.touches[0].clientY;
+                    currentY = e.touches[0].clientY;
                 }
 
                 const dy = currentY - lastScrollY;
-                
+
                 if (Math.abs(dy) > 1) {
                     hasMoved = true;
-                    socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) }); 
+                    socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) });
                     lastScrollY = currentY;
                 }
-            } 
+            }
             else {
                 const currentX = e.touches[0].clientX;
                 const currentY = e.touches[0].clientY;
@@ -913,16 +984,17 @@
 
                 if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
                     hasMoved = true;
-                    socket.emit('move', { 
-                        dx: dx * mouseSensitivity, 
-                        dy: dy * mouseSensitivity 
+                    socket.emit('move', {
+                        dx: dx * mouseSensitivity,
+                        dy: dy * mouseSensitivity
                     });
                 }
                 lastX = currentX;
                 lastY = currentY;
             }
-        }, {passive: false});
+        }, { passive: false });
 
     </script>
 </body>
+
 </html>
