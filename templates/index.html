@@ -8,396 +8,382 @@
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Air Controller</title>
-    <!-- Socket.IO 클라이언트 라이브러리 로드 -->
+    <title>Air Controller Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            /* Modern Dark Theme Palette */
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --surface-variant: #2d2d2d;
-            --primary-color: #a8c7fa;
-            --primary-variant: #669df6;
-            --accent-color: #4fabff;
-            --text-primary: #e2e2e2;
-            --text-secondary: #a1a1a1;
+            --bg-color: #0c0c0c;
+            --surface-color: rgba(30, 30, 30, 0.7);
+            --surface-variant: rgba(45, 45, 45, 0.6);
+            --primary-color: #74b9ff;
+            --primary-glow: rgba(116, 185, 255, 0.3);
+            --accent-color: #a29bfe;
+            --text-primary: #ffffff;
+            --text-secondary: #b2bec3;
             --border-color: rgba(255, 255, 255, 0.1);
-            --glass-bg: rgba(30, 30, 30, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-
-            --radius-lg: 24px;
-            --radius-md: 16px;
+            --glass-blur: 15px;
+            --radius-lg: 28px;
+            --radius-md: 18px;
             --radius-sm: 12px;
-
             --safe-top: env(safe-area-inset-top, 20px);
             --safe-bottom: env(safe-area-inset-bottom, 20px);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            font-family: 'Outfit', 'Noto Sans KR', -apple-system, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(116, 185, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(162, 155, 254, 0.05) 0%, transparent 40%);
             color: var(--text-primary);
             margin: 0;
             height: 100dvh;
             overflow: hidden;
-            overflow-x: hidden;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
         }
 
-        /* Glassmorphism App Container */
         .app-container {
             flex: 1;
             display: flex;
             flex-direction: column;
             width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 500px;
             position: relative;
-            background: linear-gradient(180deg, rgba(18, 18, 18, 0) 0%, rgba(18, 18, 18, 1) 100%);
+            height: 100%;
         }
 
         /* Top Bar */
         .topbar {
-            padding: calc(var(--safe-top) + 12px) 20px 12px;
+            padding: calc(var(--safe-top) + 16px) 24px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(18, 18, 18, 0.95);
-            backdrop-filter: blur(10px);
             z-index: 100;
-            position: relative;
         }
 
         .app-title {
             font-size: 20px;
             font-weight: 700;
-            background: linear-gradient(90deg, #fff, #a1a1a1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 30%, var(--primary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .status-badge {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
+            gap: 8px;
+            padding: 6px 14px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
             font-size: 11px;
             font-weight: 500;
             color: var(--text-secondary);
-            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background-color: #ef4444;
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
-        }
-
-        .status-badge.connected {
-            background: rgba(34, 197, 94, 0.1);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+            background-color: #ff7675;
+            box-shadow: 0 0 10px rgba(255, 118, 117, 0.5);
         }
 
         .status-badge.connected .status-dot {
-            background-color: #22c55e;
-            box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+            background-color: #55efc4;
+            box-shadow: 0 0 10px rgba(85, 239, 196, 0.5);
         }
 
-        /* Content Area */
+        /* Panels */
         .content {
             flex: 1;
             position: relative;
             overflow: hidden;
         }
 
-        /* Tab Panels */
         .panel {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
             display: flex;
             flex-direction: column;
             opacity: 0;
             pointer-events: none;
-            transform: scale(0.95);
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            padding: 20px;
+            transform: translateY(10px);
+            transition: var(--transition);
+            padding: 0 20px 20px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .panel.active {
             opacity: 1;
             pointer-events: auto;
-            transform: scale(1);
+            transform: translateY(0);
         }
 
-        /* Touchpad Specifics */
+        /* Touchpad */
         .touchpad-container {
             flex: 1;
             background: var(--surface-color);
             border-radius: var(--radius-lg);
             position: relative;
-            box-shadow: inset 0 0 0 1px var(--border-color);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(var(--glass-blur));
             overflow: hidden;
             margin-bottom: 20px;
-            transition: background 0.2s;
-        }
-
-        .touchpad-container:active {
-            background: var(--surface-variant);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            touch-action: none;
         }
 
         .touch-pattern {
             position: absolute;
             inset: 0;
-            opacity: 0.1;
-            background-image: radial-gradient(#fff 1px, transparent 1px);
-            background-size: 24px 24px;
+            opacity: 0.05;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
 
         .scroll-strip {
             position: absolute;
-            top: 0;
-            bottom: 0;
-            right: 0;
-            width: 15%;
+            top: 10px;
+            bottom: 10px;
+            right: 10px;
+            width: 40px;
+            /* 대폭 확장 */
             background: rgba(255, 255, 255, 0.03);
-            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 10px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
             pointer-events: none;
+            /* 터치 이벤트는 touchpad-container에서 처리 */
+        }
+
+        .scroll-strip::after {
+            content: "SCROLL AREA";
+            letter-spacing: 2px;
         }
 
         .touch-hint {
             position: absolute;
-            top: 50%;
+            bottom: 30px;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 12px;
             text-align: center;
-            opacity: 0.6;
-            line-height: 1.6;
+            opacity: 0.5;
+            white-space: nowrap;
         }
 
-        /* Mouse Buttons */
         .mouse-controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
             height: 70px;
+            margin-bottom: 10px;
         }
 
+        /* Buttons */
         .btn-mouse {
-            background: var(--surface-variant);
+            background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             color: var(--text-primary);
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.1s;
+            backdrop-filter: blur(var(--glass-blur));
+            transition: var(--transition);
         }
 
         .btn-mouse:active {
-            background: #404040;
-            transform: scale(0.97);
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        /* Grid Layouts */
+        .control-grid,
         .grid-shortcuts {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 10px;
         }
 
         .card-btn {
             background: var(--surface-variant);
             border-radius: var(--radius-md);
-            padding: 16px 8px;
+            padding: 18px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 8px;
             color: var(--text-primary);
-            transition: 0.2s;
-            border: 1px solid transparent;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
         }
 
         .card-btn:active {
-            background: #3a3a3a;
-            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.95);
+            border-color: var(--primary-color);
         }
 
         .card-icon {
             font-size: 24px;
-            margin-bottom: 4px;
         }
 
         .card-label {
             font-size: 12px;
             font-weight: 500;
+            text-align: center;
             opacity: 0.9;
         }
 
-        /* Input specific */
-        .input-wrapper {
-            background: var(--surface-variant);
-            border-radius: var(--radius-md);
-            padding: 8px;
+        /* Section Header with Toggle */
+        .section-header {
             display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        .input-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        /* Text Input Container - Responsive Layout */
-        .text-input-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .text-input-row {
-            background: var(--surface-variant);
-            border-radius: var(--radius-md);
-            padding: 8px;
-            display: flex;
-            gap: 8px;
-            border: 1px solid var(--border-color);
             align-items: center;
+            justify-content: space-between;
+            margin: 24px 0 12px 4px;
+            cursor: pointer;
+        }
+
+        .section-header h2 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .toggle-icon {
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .collapsed+.collapsible-content {
+            display: none;
+        }
+
+        /* Inputs */
+        .text-input-row {
+            background: var(--surface-color);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(var(--glass-blur));
         }
 
         input[type="text"] {
             flex: 1;
             background: transparent;
             border: none;
-            color: white;
-            padding: 12px;
+            color: #fff;
+            padding: 8px 12px;
             font-size: 16px;
             outline: none;
             min-width: 0;
         }
 
-        .btn-send {
-            background: var(--primary-variant);
-            color: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            padding: 0 20px;
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
         .btn-send-full {
-            background: var(--primary-variant);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: #fff;
             border: none;
             border-radius: var(--radius-md);
-            padding: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            width: 100%;
-            transition: all 0.2s;
+            padding: 16px;
+            font-weight: 700;
+            font-size: 15px;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transition: var(--transition);
+            text-align: center;
         }
 
-        .btn-send-full:active {
-            background: #5580cc;
-            transform: scale(0.98);
-        }
-
-        .btn-icon {
-            background: rgba(255, 255, 255, 0.08);
+        .btn-action-dark {
+            background: var(--surface-variant);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 0 14px;
+            border-radius: var(--radius-md);
+            padding: 16px;
             font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
         }
 
-        .btn-icon-compact {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 8px 12px;
-            font-size: 18px;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .input-hint {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 6px;
-            padding-left: 4px;
-        }
-
-        /* Bottom Tab Navigation */
+        /* Nav Tab Bar */
         .tab-bar {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            padding: 10px 10px calc(var(--safe-bottom) + 10px);
-            background: rgba(18, 18, 18, 0.95);
+            padding: 12px 12px calc(var(--safe-bottom) + 12px);
+            background: rgba(12, 12, 12, 0.82);
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--border-color);
             z-index: 100;
-            position: relative;
         }
 
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             gap: 6px;
-            padding: 8px;
+            padding: 10px;
             color: var(--text-secondary);
             font-size: 11px;
             font-weight: 500;
-            opacity: 0.7;
-            transition: 0.3s;
+            transition: var(--transition);
+            position: relative;
         }
 
         .nav-item.active {
             color: var(--primary-color);
-            opacity: 1;
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 0 10px var(--primary-color);
         }
 
         .nav-icon {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             background-color: currentColor;
             mask-size: contain;
             mask-repeat: no-repeat;
@@ -407,593 +393,803 @@
             -webkit-mask-position: center;
         }
 
-        /* Icons using CSS mask */
-        .icon-touch {
-            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
+        /* Site List */
+        .site-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .icon-input {
-            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
-        }
-
-        .icon-apps {
-            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
-        }
-
-        /* Sliders */
-        .range-wrap {
-            margin-top: 10px;
-            padding: 15px;
+        .site-item {
+            display: flex;
+            align-items: center;
             background: var(--surface-variant);
             border-radius: var(--radius-md);
+            padding: 12px 16px;
+            gap: 12px;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .site-icon-box {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .site-info {
+            flex: 1;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .site-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .site-url {
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .site-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-site-action {
+            background: transparent;
+            border: none;
+            padding: 6px;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-site-action:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            width: 100%;
+            max-width: 400px;
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .choice-btn {
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: var(--surface-variant);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: #fff;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .choice-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .choice-icon {
+            font-size: 20px;
+        }
+
+        .choice-text div:first-child {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .choice-text div:last-child {
+            font-size: 11px;
+            opacity: 0.5;
+            margin-top: 2px;
+        }
+
+        /* Range Wrap */
+        .range-wrap {
+            background: var(--surface-color);
+            padding: 18px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
         }
 
         .range-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 13px;
+            font-weight: 600;
         }
 
         input[type=range] {
             width: 100%;
             height: 6px;
-            background: #444;
-            border-radius: 3px;
+            background: #2d3436;
+            border-radius: 10px;
             outline: none;
             -webkit-appearance: none;
+            appearance: none;
         }
 
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             background: var(--primary-color);
             border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 10px var(--primary-glow);
+            cursor: pointer;
         }
 
-        /* Section Header */
-        h2 {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            margin: 0 0 12px 4px;
-            font-weight: 600;
+        /* Icons */
+        .icon-touch {
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
         }
 
-        .control-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
+        .icon-input {
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
         }
 
-        .card-btn .card-meta {
-            font-size: 10px;
-            color: var(--text-secondary);
+        .icon-apps {
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
         }
 
-        .voice-status {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 6px;
-            padding-left: 4px;
+        /* Utility */
+        .mt-auto {
+            margin-top: auto;
         }
 
-        /* Tablet / Landscape tweaks */
-        @media (min-width: 768px) {
-            .app-container {
-                max-width: 920px;
-            }
-
-            .panel {
-                padding: 28px;
-            }
-
-            .grid-shortcuts {
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            }
-
-            .touchpad-container {
-                margin-bottom: 24px;
-            }
-
-            .mouse-controls {
-                height: 80px;
-            }
-
-            .control-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-            }
-        }
-
-        @media (orientation: landscape) and (max-width: 1024px) {
-            .touchpad-container {
-                min-height: 240px;
-            }
+        .pt-10 {
+            padding-top: 10px;
         }
     </style>
 </head>
 
 <body>
-
     <div class="app-container">
-        <!-- 상단 바 -->
+        <!-- Top Bar -->
         <div class="topbar">
-            <div class="app-title">Air Mouse</div>
-            <div class="status-badge" id="statusBadge">
-                <div class="status-dot"></div>
-                <span id="statusText">Disconnected</span>
+            <div class="app-title">Air Controller Pro</div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <div class="status-badge" id="statusBadge">
+                    <div class="status-dot"></div>
+                    <span id="statusText">연결 대기중</span>
+                </div>
+                <button class="btn-mouse"
+                    style="width:36px; height:36px; padding:0; border:none; background:transparent; font-size:20px;"
+                    onclick="showSettingsModal()">⚙️</button>
             </div>
         </div>
 
         <div class="content">
-            <!-- 1. 터치패드 패널 -->
+            <!-- Panel: Touchpad -->
             <div class="panel active" id="panel-touch">
                 <div class="touchpad-container" id="touchpad">
                     <div class="touch-pattern"></div>
                     <div class="scroll-strip"></div>
-                    <div class="touch-hint">
-                        스와이프: 이동<br>
-                        탭: 클릭<br>
-                        우측 가장자리: 스크롤
-                    </div>
+                    <div class="touch-hint">이곳을 터치하여 마우스 조작<br>오른쪽 회색 바를 밀어 스크롤</div>
                 </div>
                 <div class="mouse-controls">
-                    <div class="btn-mouse" onclick="emitClick('left')">L-Click</div>
-                    <div class="btn-mouse" onclick="emitClick('right')">R-Click</div>
+                    <div class="btn-mouse" onclick="emitClick('left')">왼쪽 클릭</div>
+                    <div class="btn-mouse" onclick="emitClick('right')">오른쪽 클릭</div>
                 </div>
             </div>
 
-            <!-- 2. 입력 패널 -->
+            <!-- Panel: Inputs & Controls -->
             <div class="panel" id="panel-input">
-                <h2>Media</h2>
+                <div class="section-header">
+                    <h2>미디어 컨트롤</h2>
+                </div>
                 <div class="control-grid">
-                    <div class="card-btn" onclick="emitKey('left')">
-                        <span class="card-icon">⏪</span>
-                        <span class="card-label">-5s</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('playpause')">
-                        <span class="card-icon">⏯</span>
-                        <span class="card-label">Play/Pause</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('right')">
-                        <span class="card-icon">⏩</span>
-                        <span class="card-label">+5s</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('prevtrack')">
-                        <span class="card-icon">⏮</span>
-                        <span class="card-label">Prev</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('volumemute')">
-                        <span class="card-icon">🔇</span>
-                        <span class="card-label">Mute</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('nexttrack')">
-                        <span class="card-icon">⏭</span>
-                        <span class="card-label">Next</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('volumedown')">
-                        <span class="card-icon">🔉</span>
-                        <span class="card-label">Vol -</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('space')">
-                        <span class="card-icon">␣</span>
-                        <span class="card-label">Space</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('volumeup')">
-                        <span class="card-icon">🔊</span>
-                        <span class="card-label">Vol +</span>
-                    </div>
+                    <div class="card-btn" data-ai-id="rewd" onclick="emitKey('left')"><span
+                            class="card-icon">⏪</span><span class="card-label">-5s</span></div>
+                    <div class="card-btn" data-ai-id="playpause" onclick="emitKey('playpause')"><span
+                            class="card-icon">⏯</span><span class="card-label">재생/일시정지</span></div>
+                    <div class="card-btn" data-ai-id="fwd" onclick="emitKey('right')"><span
+                            class="card-icon">⏩</span><span class="card-label">+5s</span></div>
+                    <div class="card-btn" data-ai-id="volumedown" onclick="emitKey('volumedown')"><span
+                            class="card-icon">🔉</span><span class="card-label">볼륨 -</span></div>
+                    <div class="card-btn" data-ai-id="volumemute" onclick="emitKey('volumemute')"><span
+                            class="card-icon">🔇</span><span class="card-label">음소거</span></div>
+                    <div class="card-btn" data-ai-id="volumeup" onclick="emitKey('volumeup')"><span
+                            class="card-icon">🔊</span><span class="card-label">볼륨 +</span></div>
+                    <div class="card-btn" data-ai-id="prev" onclick="emitKey('prevtrack')"><span
+                            class="card-icon">⏮</span><span class="card-label">이전 곡</span></div>
+                    <div class="card-btn" data-ai-id="space" onclick="emitKey('space')"><span
+                            class="card-icon">␣</span><span class="card-label">스페이스</span></div>
+                    <div class="card-btn" data-ai-id="next" onclick="emitKey('nexttrack')"><span
+                            class="card-icon">⏭</span><span class="card-label">다음 곡</span></div>
                 </div>
 
-                <h2 style="margin-top: 24px;">Navigation</h2>
+                <div class="section-header">
+                    <h2>브라우저 제어</h2>
+                </div>
                 <div class="control-grid">
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])">
-                        <span class="card-label">Prev Tab</span>
+                    <div class="card-btn" data-ai-id="refresh" onclick="emitKey('f5')"><span
+                            class="card-label">새로고침</span></div>
+                    <div class="card-btn" data-ai-id="fullscreen" onclick="emitKey('f')"><span
+                            class="card-label">전체화면</span></div>
+                    <div class="card-btn" data-ai-id="back" onclick="emitHotkey(['alt', 'left'])"><span
+                            class="card-label">뒤로가기</span>
                     </div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])">
-                        <span class="card-label">Next Tab</span>
+                    <div class="card-btn" data-ai-id="forward" onclick="emitHotkey(['alt', 'right'])"><span
+                            class="card-label">앞으로가기</span>
                     </div>
-                    <div class="card-btn" onclick="emitHotkey(['alt', 'left'])">
-                        <span class="card-label">Back</span>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 't'])"><span class="card-label">새 탭</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'w'])"><span class="card-label">탭 닫기</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])"><span class="card-label">이전
+                            탭</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])"><span class="card-label">다음 탭</span>
                     </div>
-                    <div class="card-btn" onclick="emitHotkey(['alt', 'right'])">
-                        <span class="card-label">Forward</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('f')">
-                        <span class="card-label">Fullscreen</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('f5')">
-                        <span class="card-label">Refresh</span>
-                    </div>
+                    <div class="card-btn" onclick="emitKey('browserhome')"><span class="card-label">홈</span></div>
                 </div>
 
-                <h2 style="margin-top: 24px;">Text Input</h2>
-                <div class="text-input-container">
-                    <div class="text-input-row">
-                        <input type="text" id="textInput" placeholder="Enter text...">
-                        <button class="btn-icon-compact" id="voiceBtn" type="button">🎤</button>
-                    </div>
-                    <div class="voice-status" id="voiceStatus"></div>
-                    <button class="btn-send-full" onclick="sendText()">Send</button>
+                <div class="section-header">
+                    <h2>텍스트 입력</h2>
+                </div>
+                <div class="text-input-row" style="margin-bottom:12px;">
+                    <input type="text" id="textInput" placeholder="입력할 내용을 적으세요...">
+                    <button class="btn-mouse" style="width:48px; border:none;" onclick="showVoiceModal()">🎤</button>
+                </div>
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; margin-bottom: 24px;">
+                    <button class="btn-send-full" onclick="sendText()">입력 전송</button>
+                    <button class="btn-action-dark" onclick="emitKey('enter')">엔터</button>
+                    <button class="btn-action-dark" onclick="emitKey('backspace')">지우기</button>
                 </div>
 
-                <h2 style="margin-top: 24px;">Controls</h2>
-                <div class="grid-shortcuts" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="card-btn" onclick="emitKey('enter')">
-                        <span class="card-label">Enter</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('backspace')">
-                        <span class="card-label">Backspace</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('esc')">
-                        <span class="card-label">ESC</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('space')">
-                        <span class="card-label">Space</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('tab')">
-                        <span class="card-label">Tab</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('win')">
-                        <span class="card-label">Win</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('up')">
-                        <span class="card-label">Up</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('down')">
-                        <span class="card-label">Down</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('left')">
-                        <span class="card-label">Left</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('right')">
-                        <span class="card-label">Right</span>
-                    </div>
+                <div class="section-header">
+                    <h2>설정</h2>
                 </div>
-
-                <h2 style="margin-top: 24px;">Sensitivity</h2>
                 <div class="range-wrap">
-                    <div class="range-header">
-                        <span>Pointer Speed</span>
-                        <span id="mouseVal">2.5</span>
-                    </div>
+                    <div class="range-header"><span>마우스 감도</span><span id="mouseVal">2.5</span></div>
                     <input type="range" id="mouseSens" min="1.0" max="5.0" step="0.5" value="2.5">
                 </div>
-                <div class="range-wrap">
-                    <div class="range-header">
-                        <span>Scroll Speed</span>
-                        <span id="scrollVal">15</span>
-                    </div>
+                <div class="range-wrap" style="margin-bottom:20px;">
+                    <div class="range-header"><span>스크롤 감도</span><span id="scrollVal">15</span></div>
                     <input type="range" id="scrollSens" min="5" max="50" step="5" value="15">
                 </div>
+
+                <button class="btn-action-dark" style="color:#ff7675; border-color: rgba(255,118,117,0.2);"
+                    onclick="showTimerModal()">💤 PC 예약 종료 설정</button>
             </div>
 
-            <!-- 3. 앱 바로가기 패널 -->
+            <!-- Panel: Apps -->
             <div class="panel" id="panel-apps">
-                <h2>Streaming</h2>
-                <div class="grid-shortcuts">
-                    <div class="card-btn" onclick="openUrl('https://www.youtube.com')">
-                        <span class="card-icon">▶</span>
-                        <span class="card-label">YouTube</span>
+                <div id="aiAnalysisBox" style="margin-bottom: 20px; display:none;">
+                    <div class="section-header">
+                        <h2>실시간 사이트 분석</h2>
                     </div>
-                    <div class="card-btn" onclick="openUrl('https://www.youtube.com/watch?v=BRLKv8aoysQ')">
-                        <span class="card-icon">🌙</span>
-                        <span class="card-label">취침준비</span>
+                    <div class="card-btn"
+                        style="background: linear-gradient(135deg, rgba(162, 155, 254, 0.1), rgba(116, 185, 255, 0.1)); border-color: var(--accent-color);"
+                        onclick="analyzeCurrentSite()">
+                        <span class="card-icon">🧠</span>
+                        <span class="card-label">현재 사이트 분석 및 버튼 매핑</span>
                     </div>
-                    <div class="card-btn" onclick="openUrl('https://music.youtube.com')">
-                        <span class="card-icon">🎵</span>
-                        <span class="card-label">YT Music</span>
-                    </div>
-                    <div class="card-btn" onclick="openUrl('https://www.netflix.com')">
-                        <span class="card-icon">N</span>
-                        <span class="card-label">Netflix</span>
-                    </div>
-                    <div class="card-btn" onclick="openUrl('https://laftel.net')">
-                        <span class="card-icon">🦄</span>
-                        <span class="card-label">Laftel</span>
-                    </div>
-                    <div class="card-btn" onclick="openUrl('https://tvwiki4.net')">
-                        <span class="card-icon">📺</span>
-                        <span class="card-label">TVWiki</span>
-                    </div>
-                    <div class="card-btn" onclick="openUrl('https://anilife.app/home')">
-                        <span class="card-icon">🅰️</span>
-                        <span class="card-label">AniLife</span>
+                    <div id="mappingStatus"
+                        style="font-size:11px; text-align:center; color:var(--primary-color); margin-top:8px;"></div>
+                </div>
+
+                <div class="section-header">
+                    <h2>즐겨찾기</h2>
+                </div>
+                <div class="grid-shortcuts" id="favoritesGrid">
+                    <!-- 즐겨찾기 아이템 동적 생성 -->
+                </div>
+
+                <div class="section-header">
+                    <h2>URL 직접 열기</h2>
+                </div>
+                <div class="text-input-row" style="margin-bottom:24px;">
+                    <input type="text" id="appUrlInput" placeholder="https://...">
+                    <button class="btn-mouse" style="padding: 0 16px; border:none;" onclick="openAppUrl()">이동</button>
+                </div>
+
+                <div class="section-header collapsed" onclick="toggleHistory(this)">
+                    <h2>최근 방문 기록</h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div class="site-list" id="historyList">
+                        <!-- 히스토리 아이템 동적 생성 -->
                     </div>
                 </div>
 
-                <div class="input-wrapper" style="margin-top: 20px; margin-bottom: 24px;">
-                    <input type="text" id="appUrlInput" placeholder="https://..." style="width: 100%;">
-                    <button class="btn-send" onclick="openAppUrl()">Open</button>
-                </div>
-
-                <h2 style="margin-top: 24px;">Tools</h2>
-                <div class="grid-shortcuts">
-                    <div class="card-btn" onclick="openUrl('https://www.google.com')">
-                        <span class="card-label">Google</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('browserhome')">
-                        <span class="card-label">Home</span>
-                    </div>
-                    <div class="card-btn" onclick="emitSystem('sleep')">
-                        <span class="card-label">Sleep PC</span>
-                    </div>
+                <div class="mt-auto pt-10">
+                    <button class="btn-send-full" style="width:100%;" onclick="syncFromPc()">🔄 PC 화면 내 폰으로 동기화</button>
                 </div>
             </div>
         </div>
 
-        <!-- 하단 탭 내비게이션 -->
+        <!-- Navigation Tab Bar -->
         <div class="tab-bar">
             <div class="nav-item active" onclick="switchTab('touch')">
                 <div class="nav-icon icon-touch"></div>
-                <span>Touch</span>
+                <span>터치</span>
             </div>
             <div class="nav-item" onclick="switchTab('input')">
                 <div class="nav-icon icon-input"></div>
-                <span>Input</span>
+                <span>컨트롤</span>
             </div>
             <div class="nav-item" onclick="switchTab('apps')">
                 <div class="nav-icon icon-apps"></div>
-                <span>Apps</span>
+                <span>앱 / 사이트</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Timer Modal -->
+    <div class="modal-overlay" id="timerModal">
+        <div class="modal-content">
+            <div class="modal-title">PC 예약 종료</div>
+            <div class="preset-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(20)">20분 후</button>
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(40)">40분 후</button>
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(60)">1시간 후</button>
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(120)">2시간 후</button>
+            </div>
+            <div class="text-input-row">
+                <input type="text" id="manualMinutes" placeholder="입력 (단위: 분)">
+                <button class="btn-mouse" style="padding:0 12px;" onclick="setManualTimer()">예약</button>
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button class="btn-action-dark" style="flex:1" onclick="closeModals()">취소</button>
+                <button class="btn-action-dark" style="flex:1; color:#ff7675;" onclick="cancelShutdown()">예약 취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Starring Choice Modal -->
+    <div class="modal-overlay" id="starChoiceModal">
+        <div class="modal-content">
+            <div class="modal-title">즐겨찾기 저장 방식 선택</div>
+            <div id="choiceContainer"></div>
+            <button class="btn-action-dark" style="width:100%; margin-top:10px;" onclick="closeModals()">취소</button>
+        </div>
+    </div>
+
+    <!-- Favorite Edit Modal -->
+    <div class="modal-overlay" id="favEditModal">
+        <div class="modal-content">
+            <div class="modal-title">즐겨찾기 정보 편집</div>
+            <div class="text-input-row" style="margin-bottom:10px;">
+                <input type="text" id="favNameInput" placeholder="이름 (예: 유튜브)">
+            </div>
+            <div class="text-input-row" style="margin-bottom:15px;">
+                <input type="text" id="favIconInput" placeholder="이모지 또는 아이콘 (예: 🎬)">
+            </div>
+            <div id="favUrlLabel" style="font-size:11px; color:#666; margin-bottom:20px; word-break:break-all;"></div>
+            <button class="btn-send-full" style="width:100%;" id="saveFavBtn">저장하기</button>
+            <button class="btn-action-dark" style="width:100%; margin-top:10px;" onclick="closeModals()">취소</button>
+        </div>
+    </div>
+
+    <!-- Voice Modal -->
+    <div class="modal-overlay" id="voiceModal">
+        <div class="modal-content" style="text-align:center;">
+            <div class="modal-title">말씀해 주세요...</div>
+            <div id="voiceResult"
+                style="font-size:18px; font-weight:600; min-height:1.5em; color:var(--primary-color); margin:20px 0;">
+            </div>
+            <button class="btn-action-dark" style="width:100%;" onclick="closeModals()">중단</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-title">AI 및 앱 설정</div>
+
+            <div class="section-header">
+                <h2>AI 분석 기능 사용</h2>
+            </div>
+            <label class="choice-btn" style="padding:12px; cursor:pointer;">
+                <input type="checkbox" id="aiEnabledToggle" onchange="toggleAiPower()" style="width:20px; height:20px;">
+                <div class="choice-text">
+                    <div>AI 버튼 자동 매핑 활성화</div>
+                    <div>체크 해제 시 관련 버튼이 비활성화됩니다.</div>
+                </div>
+            </label>
+
+            <div id="aiConfigInputs" style="opacity:0.5; pointer-events:none; transition:0.3s;">
+                <div class="section-header">
+                    <h2>모델 선택</h2>
+                </div>
+                <div class="choice-btn" style="padding:10px; flex-direction:column; gap:8px;">
+                    <select id="aiModelSelect"
+                        style="width:100%; height:40px; background:var(--surface-color); color:#fff; border-radius:8px; border:1px solid var(--border-color); outline:none; padding:0 10px;">
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (추천/저렴)</option>
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="deepseek-chat">DeepSeek Chat</option>
+                    </select>
+                </div>
+
+                <div class="section-header">
+                    <h2>API 키 입력</h2>
+                </div>
+                <div class="text-input-row" style="margin-bottom:8px;">
+                    <input type="password" id="key-google" placeholder="Google AI API Key">
+                </div>
+                <div class="text-input-row" style="margin-bottom:8px;">
+                    <input type="password" id="key-openai" placeholder="OpenAI API Key">
+                </div>
+                <div class="text-input-row" style="margin-bottom:15px;">
+                    <input type="password" id="key-deepseek" placeholder="DeepSeek API Key">
+                </div>
+
+                <div class="section-header">
+                    <h2>사용량 및 비용 (KRW)</h2>
+                </div>
+                <div class="range-wrap" style="padding:12px; font-size:13px; font-weight:500;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <span>최근 분석 비용</span><span id="lastCost" style="color:var(--primary-color);">₩0</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>누적 합계</span><span id="totalCost" style="color:var(--accent-color);">₩0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; display:flex; gap:10px;">
+                <button class="btn-action-dark" style="flex:1" onclick="closeModals()">닫기</button>
+                <button class="btn-send-full" style="flex:1" onclick="saveAiSettings()">설정 저장</button>
             </div>
         </div>
     </div>
 
     <script>
-        // === Socket.IO 연결 ===
-        // 같은 호스트의 루트 네임스페이스로 연결
         const socket = io();
-
         const statusBadge = document.getElementById('statusBadge');
         const statusText = document.getElementById('statusText');
 
-        socket.on('connect', () => {
-            statusBadge.classList.add('connected');
-            statusText.textContent = 'Connected';
+        socket.on('connect', () => { statusBadge.classList.add('connected'); statusText.textContent = '연결됨'; socket.emit('get_sites'); });
+        socket.on('disconnect', () => { statusBadge.classList.remove('connected'); statusText.textContent = '연결 끊김'; });
+        socket.on('sync_sites', (data) => { renderSites(data); });
+        socket.on('system_status', (data) => { alert(data.msg); });
+        socket.on('open_on_mobile', (data) => { if (confirm('PC에서 가져온 페이지를 열까요?\n' + data.url)) window.open(data.url, '_blank'); });
+        socket.on('domain_info', (data) => { showStarChoice(data); });
+
+        socket.on('ai_config_status', (config) => {
+            updateAiConfigUI(config);
         });
 
-        socket.on('disconnect', () => {
-            statusBadge.classList.remove('connected');
-            statusText.textContent = 'Disconnected';
+        socket.on('ai_mapping_result', (data) => {
+            applyAiMapping(data);
         });
 
-        // === 상태 관리 변수 ===
-        let mouseSensitivity = 1.5;
-        let scrollSensitivity = 15;
+        socket.emit('get_ai_config');
 
-        // 로컬 스토리지 로드
-        if (localStorage.getItem('mouseSens')) {
-            mouseSensitivity = parseFloat(localStorage.getItem('mouseSens'));
-            document.getElementById('mouseSens').value = mouseSensitivity;
-            document.getElementById('mouseVal').textContent = mouseSensitivity;
-        }
-        if (localStorage.getItem('scrollSens')) {
-            scrollSensitivity = parseInt(localStorage.getItem('scrollSens'));
-            document.getElementById('scrollSens').value = scrollSensitivity;
-            document.getElementById('scrollVal').textContent = scrollSensitivity;
-        }
+        // Settings
+        let mouseSens = localStorage.getItem('mouseSens') || 2.5, scrollSens = localStorage.getItem('scrollSens') || 15;
+        document.getElementById('mouseSens').value = mouseSens; document.getElementById('mouseVal').textContent = mouseSens;
+        document.getElementById('scrollSens').value = scrollSens; document.getElementById('scrollVal').textContent = scrollSens;
+        document.getElementById('mouseSens').oninput = (e) => { mouseSens = e.target.value; document.getElementById('mouseVal').textContent = mouseSens; localStorage.setItem('mouseSens', mouseSens); };
+        document.getElementById('scrollSens').oninput = (e) => { scrollSens = e.target.value; document.getElementById('scrollVal').textContent = scrollSens; localStorage.setItem('scrollSens', scrollSens); };
 
-        // 감도 조절 이벤트
-        document.getElementById('mouseSens').addEventListener('input', (e) => {
-            mouseSensitivity = parseFloat(e.target.value);
-            document.getElementById('mouseVal').textContent = mouseSensitivity;
-            localStorage.setItem('mouseSens', mouseSensitivity);
-        });
-
-        document.getElementById('scrollSens').addEventListener('input', (e) => {
-            scrollSensitivity = parseInt(e.target.value);
-            document.getElementById('scrollVal').textContent = scrollSensitivity;
-            localStorage.setItem('scrollSens', scrollSensitivity);
-        });
-
-        // === 탭 전환 ===
-        function switchTab(tabName) {
-            // 패널 전환
-            document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
-            document.getElementById(`panel-${tabName}`).classList.add('active');
-
-            // 내비 아이콘 전환
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            // 클릭된 요소 찾아서 active (간단 구현)
-            event.currentTarget.classList.add('active');
+        // Tabs
+        function switchTab(name) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`panel-${name}`).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+            vibrate(10);
         }
 
-        // === 소켓 송신 함수 ===
-        function emitClick(btn) {
-            socket.emit('click', { btn });
-            vibrate(30);
+        function toggleHistory(el) {
+            el.classList.toggle('collapsed');
+            vibrate(5);
         }
 
-        function emitKey(key) {
-            socket.emit('key', { key });
-            vibrate(20);
-        }
-
-        function emitHotkey(keys) {
-            socket.emit('hotkey', { keys });
-            vibrate(25);
-        }
-
-        function emitSystem(action) {
-            if (action === 'sleep') {
-                if (!confirm('PC를 절전 모드로 전환할까요?')) return;
-            }
-            socket.emit('system', { action });
-            vibrate(30);
-        }
-
-        function openUrl(url) {
-            socket.emit('open', { url });
-            vibrate(40);
-        }
+        // Common Emitters
+        function emitClick(btn) { socket.emit('click', { btn }); vibrate(30); }
+        function emitKey(key) { socket.emit('key', { key }); vibrate(15); }
+        function emitHotkey(keys) { socket.emit('hotkey', { keys }); vibrate(20); }
+        function openUrl(url) { socket.emit('open', { url }); vibrate(40); }
 
         function sendText() {
             const input = document.getElementById('textInput');
-            const text = input.value;
-            if (!text) return;
-            socket.emit('type', { text, pressEnter: false });
-            input.value = '';
-            vibrate(50);
-        }
-
-        function normalizeUrl(raw) {
-            if (!raw) return '';
-            const trimmed = raw.trim();
-            if (/^https?:\/\//i.test(trimmed)) {
-                return trimmed;
-            }
-            return `https://${trimmed}`;
+            if (input.value) { socket.emit('type', { text: input.value }); input.value = ''; vibrate(40); }
         }
 
         function openAppUrl() {
             const input = document.getElementById('appUrlInput');
-            const value = input.value;
-            if (!value) return;
-            const normalized = normalizeUrl(value);
-            openUrl(normalized);
-            input.value = '';
+            if (input.value) { let url = input.value.trim(); if (!/^https?:\/\//i.test(url)) url = 'https://' + url; openUrl(url); input.value = ''; }
         }
 
-        // 엔터키 처리
-        document.getElementById('textInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendText();
-            }
+        function syncFromPc() { socket.emit('sync_from_pc'); vibrate(30); }
+
+        // AI & Settings
+        function showSettingsModal() { document.getElementById('settingsModal').classList.add('active'); socket.emit('get_ai_config'); }
+
+        function updateAiConfigUI(config) {
+            document.getElementById('aiEnabledToggle').checked = config.enabled;
+            document.getElementById('aiModelSelect').value = config.selected_model;
+            document.getElementById('key-google').value = config.api_keys.google || "";
+            document.getElementById('key-openai').value = config.api_keys.openai || "";
+            document.getElementById('key-deepseek').value = config.api_keys.deepseek || "";
+            document.getElementById('lastCost').textContent = `₩${config.usage.last_cost.toLocaleString()}`;
+            document.getElementById('totalCost').textContent = `₩${config.usage.total_krw.toLocaleString()}`;
+
+            toggleAiInputs(config.enabled);
+            document.getElementById('aiAnalysisBox').style.display = config.enabled ? 'block' : 'none';
+        }
+
+        function toggleAiPower() {
+            const enabled = document.getElementById('aiEnabledToggle').checked;
+            toggleAiInputs(enabled);
+            if (!enabled) applyAiMapping({ mapping: null }); // Reset
+        }
+
+        function toggleAiInputs(enabled) {
+            const container = document.getElementById('aiConfigInputs');
+            container.style.opacity = enabled ? '1' : '0.5';
+            container.style.pointerEvents = enabled ? 'auto' : 'none';
+        }
+
+        function saveAiSettings() {
+            const data = {
+                enabled: document.getElementById('aiEnabledToggle').checked,
+                selected_model: document.getElementById('aiModelSelect').value,
+                api_keys: {
+                    google: document.getElementById('key-google').value,
+                    openai: document.getElementById('key-openai').value,
+                    deepseek: document.getElementById('key-deepseek').value
+                }
+            };
+            socket.emit('save_ai_config', data);
+            closeModals();
+            vibrate(30);
+        }
+
+        function analyzeCurrentSite() {
+            // 현재 활성화된 브라우저 URL을 가져오기 위해 sync_from_pc의 로직 일부 활용 (서버 측 구현 필요)
+            document.getElementById('mappingStatus').textContent = "사이트 분석 중... (비용이 발생할 수 있습니다)";
+            socket.emit('sync_from_pc_silent'); // Silent version to get URL without opening on mobile
+            vibrate(20);
+        }
+
+        socket.on('pc_url_received', (data) => {
+            if (data.url) socket.emit('analyze_site', { url: data.url });
         });
 
-        function vibrate(ms) {
-            if (navigator.vibrate) navigator.vibrate(ms);
-        }
+        function applyAiMapping(data) {
+            const mapping = data.mapping;
+            const statusEl = document.getElementById('mappingStatus');
 
-        // 음성 인식 (STT)
-        const voiceBtn = document.getElementById('voiceBtn');
-        const voiceStatus = document.getElementById('voiceStatus');
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
-
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'ko-KR';
-            recognition.interimResults = false;
-
-            recognition.addEventListener('start', () => {
-                voiceStatus.textContent = '듣는 중...';
-            });
-            recognition.addEventListener('end', () => {
-                voiceStatus.textContent = '';
-            });
-            recognition.addEventListener('result', (event) => {
-                const transcript = event.results[0][0].transcript;
-                const input = document.getElementById('textInput');
-                input.value = transcript;
-                voiceStatus.textContent = '음성 입력 완료';
-            });
-            recognition.addEventListener('error', () => {
-                voiceStatus.textContent = '음성 인식 오류';
-            });
-
-            voiceBtn.addEventListener('click', () => {
-                recognition.start();
-                vibrate(20);
-            });
-        } else {
-            voiceBtn.disabled = true;
-            voiceBtn.textContent = '🚫';
-            voiceStatus.textContent = '음성 입력 미지원 브라우저';
-        }
-
-        // === 터치패드 로직 ===
-        const touchpad = document.getElementById('touchpad');
-        let lastX = 0;
-        let lastY = 0;
-        let isTouching = false;
-        let startTime = 0;
-        let mode = 'move'; // 'move' or 'scroll'
-        let lastScrollY = 0;
-        let hasMoved = false;
-
-        touchpad.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            isTouching = true;
-            hasMoved = false;
-            startTime = Date.now();
-
-            const rect = touchpad.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = touch.clientX - rect.left;
-
-            // 우측 15% 영역 또는 두 손가락
-            if ((e.touches.length === 1 && x > rect.width * 0.85) || e.touches.length === 2) {
-                mode = 'scroll';
-                if (e.touches.length === 2) {
-                    lastScrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                } else {
-                    lastScrollY = touch.clientY;
-                }
+            if (mapping) {
+                statusEl.textContent = `분석 완료: ${mapping.site_name || data.url}`;
+                statusEl.style.color = "#55efc4";
+                vibrate([30, 50, 30]);
             } else {
-                mode = 'move';
-                lastX = touch.clientX;
-                lastY = touch.clientY;
+                statusEl.textContent = "";
+                statusEl.style.color = "var(--primary-color)"; // Reset color
             }
-        }, { passive: false });
 
-        touchpad.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            if (!isTouching) return;
-
-            const duration = Date.now() - startTime;
-            if (!hasMoved && duration < 200) {
-                if (mode === 'move') {
-                    emitClick('left');
-                } else if (mode === 'scroll') {
-                    emitClick('right'); // 스크롤바 탭 시 우클릭 효과? or just nothing. User didn't specify. Keeping original behavior (scroll mode tap -> right click)
+            // 모든 버튼 초기화 후 매핑 적용
+            const allAiButtons = document.querySelectorAll('.card-btn[data-ai-id]');
+            allAiButtons.forEach(btn => {
+                const aiId = btn.getAttribute('data-ai-id');
+                if (!mapping) {
+                    btn.style.opacity = "1";
+                    btn.style.pointerEvents = "auto";
+                    btn.style.borderColor = "var(--border-color)";
+                    btn.style.boxShadow = "none"; // Reset shadow
+                    // Reset onclick to original if possible, or a generic one
+                    // For now, we'll just re-enable. A more robust solution would store original onclicks.
+                    return;
                 }
-            }
+
+                if (mapping[aiId]) {
+                    btn.style.opacity = "1";
+                    btn.style.pointerEvents = "auto";
+                    btn.style.borderColor = "var(--primary-color)";
+                    btn.style.boxShadow = "0 0 10px var(--primary-glow)";
+                    // 단축키 오버라이드 로직 (필요 시 emitKey 수정)
+                    btn.onclick = () => { emitKey(mapping[aiId]); vibrate(20); };
+                } else if (["refresh", "back", "forward"].includes(aiId)) {
+                    // 필수 브라우저 기능은 유지
+                    btn.style.opacity = "1";
+                    btn.style.pointerEvents = "auto";
+                    btn.style.borderColor = "var(--border-color)"; // Keep default border
+                    btn.style.boxShadow = "none"; // No glow for unmapped but active
+                } else {
+                    // 매핑되지 않은 버튼 비활성화
+                    btn.style.opacity = "0.2";
+                    btn.style.pointerEvents = "none";
+                    btn.style.boxShadow = "none";
+                    btn.style.borderColor = "transparent";
+                }
+            });
+        }
+
+        // Render Sites
+        function renderSites(data) {
+            const fGrid = document.getElementById('favoritesGrid');
+            fGrid.innerHTML = '';
+            data.favorites.forEach(fav => {
+                const item = document.createElement('div');
+                item.className = 'card-btn';
+                item.innerHTML = `<span class="card-icon">${fav.icon || '⭐'}</span><span class="card-label">${fav.name}</span>`;
+                item.onclick = () => openUrl(fav.url);
+                // Long press for deletion? Simplified for now with an edit button maybe later.
+                fGrid.appendChild(item);
+            });
+
+            const hList = document.getElementById('historyList');
+            hList.innerHTML = '';
+            data.history.forEach(site => {
+                const item = document.createElement('div');
+                item.className = 'site-item';
+                const domain = extractDisplayDomain(site);
+                item.innerHTML = `
+                    <div class="site-icon-box">🔗</div>
+                    <div class="site-info" onclick="openUrl('${site}')">
+                        <span class="site-name">${domain}</span>
+                        <span class="site-url">${site}</span>
+                    </div>
+                    <div class="site-actions">
+                        <button class="btn-site-action" onclick="starHistory('${site}')">⭐</button>
+                        <button class="btn-site-action" onclick="deleteHistory('${site}')">🗑️</button>
+                    </div>
+                `;
+                hList.appendChild(item);
+            });
+        }
+
+        function extractDisplayDomain(url) {
+            try { return new URL(url).hostname; } catch (e) { return url; }
+        }
+
+        // Favorites Management
+        function starHistory(url) {
+            socket.emit('get_domain_info', { url });
+            vibrate(20);
+        }
+
+        function showStarChoice(data) {
+            const modal = document.getElementById('starChoiceModal');
+            const container = document.getElementById('choiceContainer');
+            container.innerHTML = `
+                <button class="choice-btn" onclick="startFavEdit('${data.url}')">
+                    <span class="choice-icon">📄</span>
+                    <div class="choice-text">
+                        <div>이 페이지 전체 저장</div>
+                        <div>${data.url}</div>
+                    </div>
+                </button>
+                <button class="choice-btn" onclick="startFavEdit('${data.domain}')">
+                    <span class="choice-icon">🏠</span>
+                    <div class="choice-text">
+                        <div>기본 도메인 저장</div>
+                        <div>${data.domain}</div>
+                    </div>
+                </button>
+            `;
+            modal.classList.add('active');
+        }
+
+        function startFavEdit(url) {
+            document.getElementById('starChoiceModal').classList.remove('active');
+            const modal = document.getElementById('favEditModal');
+            document.getElementById('favUrlLabel').textContent = url;
+            document.getElementById('favNameInput').value = extractDisplayDomain(url);
+            document.getElementById('favIconInput').value = '⭐';
+            document.getElementById('saveFavBtn').onclick = () => saveFavorite(url);
+            modal.classList.add('active');
+        }
+
+        function saveFavorite(url) {
+            const name = document.getElementById('favNameInput').value || extractDisplayDomain(url);
+            const icon = document.getElementById('favIconInput').value || '⭐';
+            socket.emit('add_favorite', { name, url, icon });
+            closeModals();
+            vibrate(50);
+        }
+
+        function deleteHistory(url) { if (confirm('이 방문 기록을 삭제할까요?')) { socket.emit('delete_site', { url, type: 'history' }); vibrate(20); } }
+
+        // Modals
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); stopRecognition(); }
+        function showTimerModal() { document.getElementById('timerModal').classList.add('active'); }
+        function setTimer(min) { socket.emit('system', { action: 'timer', min }); closeModals(); }
+        function setManualTimer() { const min = parseInt(document.getElementById('manualMinutes').value); if (min > 0) setTimer(min); else alert('분을 입력해주세요.'); }
+        function cancelShutdown() { socket.emit('system', { action: 'cancel_shutdown' }); closeModals(); }
+
+        // STT
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = (SR) ? new SR() : null;
+        if (recognition) {
+            recognition.lang = 'ko-KR';
+            recognition.onresult = (e) => { const t = e.results[0][0].transcript; document.getElementById('voiceResult').textContent = t; document.getElementById('textInput').value = t; setTimeout(closeModals, 1000); };
+        }
+        function showVoiceModal() { if (!recognition) return alert('음성 인식을 지원하지 않는 브라우저입니다.'); document.getElementById('voiceResult').textContent = ''; document.getElementById('voiceModal').classList.add('active'); recognition.start(); vibrate(20); }
+        function stopRecognition() { if (recognition) try { recognition.stop(); } catch (e) { } }
+
+        // Touchpad
+        const touchpad = document.getElementById('touchpad');
+        let lastX, lastY, isTouching, startTime, hasMoved, isScroll;
+        touchpad.addEventListener('touchstart', (e) => {
+            e.preventDefault(); isTouching = true; hasMoved = false; startTime = Date.now();
+            const rect = touchpad.getBoundingClientRect(); const t = e.touches[0];
+            const x = t.clientX - rect.left;
+            isScroll = (x > rect.width - 50) || (e.touches.length === 2);
+            lastX = t.clientX; lastY = t.clientY;
+        }, { passive: false });
+        touchpad.addEventListener('touchend', (e) => {
+            e.preventDefault(); if (isTouching && !hasMoved && (Date.now() - startTime < 200)) emitClick(isScroll ? 'right' : 'left');
             isTouching = false;
         });
-
         touchpad.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!isTouching) return;
-
-            if (mode === 'scroll') {
-                let currentY;
-                if (e.touches.length === 2) {
-                    currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                } else {
-                    currentY = e.touches[0].clientY;
-                }
-
-                const dy = currentY - lastScrollY;
-
-                if (Math.abs(dy) > 1) {
-                    hasMoved = true;
-                    socket.emit('scroll', { dy: dy * (scrollSensitivity / 5) });
-                    lastScrollY = currentY;
-                }
-            }
-            else {
-                const currentX = e.touches[0].clientX;
-                const currentY = e.touches[0].clientY;
-                const dx = currentX - lastX;
-                const dy = currentY - lastY;
-
-                if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-                    hasMoved = true;
-                    socket.emit('move', {
-                        dx: dx * mouseSensitivity,
-                        dy: dy * mouseSensitivity
-                    });
-                }
-                lastX = currentX;
-                lastY = currentY;
+            e.preventDefault(); if (!isTouching) return;
+            const t = e.touches[0]; const dx = t.clientX - lastX, dy = t.clientY - lastY;
+            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                hasMoved = true;
+                if (isScroll) socket.emit('scroll', { dy: dy * (scrollSens / 5) });
+                else socket.emit('move', { dx: dx * mouseSens, dy: dy * mouseSens });
+                lastX = t.clientX; lastY = t.clientY;
             }
         }, { passive: false });
 
+        function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+        document.getElementById('textInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendText(); });
+
+        // Responsive Fix
+        function adjustVH() { document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`); }
+        window.addEventListener('resize', adjustVH); adjustVH();
     </script>
 </body>
 
