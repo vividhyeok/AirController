@@ -12,95 +12,9 @@ import webbrowser
 import signal
 import threading
 import time
-<<<<<<< HEAD
 import ctypes
-=======
-import json
-import re
-import pyperclip
-import requests
 
-# 전역 상태 관리
-active_connections = 0
-idle_timer = None
-IDLE_TIMEOUT = 300  # 5분 (초 단위)
-shutdown_timer = None
-SITES_FILE = 'sites.json'
-AI_CONFIG_FILE = 'ai_config.json'
-
-def load_sites():
-    if os.path.exists(SITES_FILE):
-        try:
-            with open(SITES_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                # 마이그레이션: 히스토리가 도메인만 있다면 리스트 유지, 즐겨찾기가 리스트면 객체 리스트로 변환
-                if 'history' not in data: data['history'] = []
-                if 'favorites' not in data: data['favorites'] = []
-                if data['favorites'] and isinstance(data['favorites'][0], str):
-                    data['favorites'] = [{"name": extract_domain(url).replace("https://","").replace("http://",""), "url": url, "icon": "⭐"} for url in data['favorites']]
-                return data
-        except Exception:
-            pass
-    return {"history": [], "favorites": []}
-
-def save_sites(data):
-    try:
-        with open(SITES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except Exception as e:
-        print(f"Error saving sites: {e}")
-
-def load_ai_config():
-    if os.path.exists(AI_CONFIG_FILE):
-        try:
-            with open(AI_CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {
-        "api_keys": {"openai": "", "google": "", "deepseek": ""},
-        "selected_model": "gemini-1.5-flash",
-        "mappings": {},
-        "usage": {"total_krw": 0, "last_cost": 0},
-        "enabled": False
-    }
-
-def save_ai_config(config):
-    try:
-        with open(AI_CONFIG_FILE, 'w', encoding='utf-8') as f:
-            json.dump(config, f, ensure_ascii=False, indent=4)
-    except Exception:
-        pass
-
-def extract_domain(url):
-    try:
-        # 도메인만 추출 (프로토콜 포함)
-        match = re.search(r'https?://[^/]+', url)
-        if match:
-            return match.group(0)
-    except Exception:
-        pass
-    return url
-
-def exit_gracefully():
-    print("Shutting down server...")
-    os._exit(0)
-
-def start_idle_timer():
-    global idle_timer
-    if idle_timer:
-        idle_timer.cancel()
-    idle_timer = threading.Timer(IDLE_TIMEOUT, exit_gracefully)
-    idle_timer.start()
-
-def stop_idle_timer():
-    global idle_timer
-    if idle_timer:
-        idle_timer.cancel()
-        idle_timer = None
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
-
-# Flask 앱과 SocketIO 초기화
+# Flask ?�과 SocketIO 초기??
 if getattr(sys, 'frozen', False):
     template_folder = os.path.join(sys._MEIPASS, 'templates')
     app = Flask(__name__, template_folder=template_folder)
@@ -124,15 +38,15 @@ def get_active_window_title():
     except:
         return "Unknown"
 
-# cors_allowed_origins='*' 는 로컬 네트워크의 다른 기기 접속 허용
+# cors_allowed_origins='*' ??로컬 ?�트?�크???�른 기기 ?�속 ?�용
 socketio = SocketIO(app, cors_allowed_origins='*', async_mode='threading')
 
-# 마우스 안전모드 해제
+# 마우???�전모드 ?�제
 pyautogui.FAILSAFE = False
 
-# 마우스 이동 스로틀링을 위한 시간 저장
+# 마우???�동 ?�로?�링을 ?�한 ?�간 ?�??
 last_move_time = 0
-MOVE_INTERVAL = 0.01  # 약 100Hz (CPU 부하 감소)
+MOVE_INTERVAL = 0.01  # ??100Hz (CPU 부??감소)
 
 @app.route('/')
 def index():
@@ -160,7 +74,7 @@ def qr_page():
 
     return render_template('qr.html', controller_url=controller_url, qr_data=qr_data)
 
-# === WebSocket 이벤트 핸들러 ===
+# === WebSocket ?�벤???�들??===
 
 @socketio.on('connect')
 def handle_connect():
@@ -233,7 +147,6 @@ def handle_hotkey(data):
 
 @socketio.on('system')
 def handle_system(data):
-<<<<<<< HEAD
     global sleep_timer
     action = data.get('action', '')
     delay = data.get('delay', 0)  # minutes
@@ -255,7 +168,7 @@ def handle_system(data):
             
             sleep_timer = threading.Thread(target=do_sleep, daemon=True)
             sleep_timer.start()
-            emit('system_status', {'message': f'{delay}분 후 절전 모드로 전환됩니다.'})
+            emit('system_status', {'message': f'{delay}�????�전 모드�??�환?�니??'})
         else:
             subprocess.run(
                 ["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"],
@@ -290,43 +203,6 @@ def handle_get_current_tab():
         # pyperclip.copy(old_clipboard)
     except Exception as e:
         emit('current_tab', {'error': str(e)})
-=======
-    global shutdown_timer
-    action = data.get('action', '')
-    
-    if action == 'sleep' and sys.platform.startswith('win'):
-        # 절전 모드 진입 전 서버 종료 예약
-        threading.Timer(2.0, exit_gracefully).start()
-        subprocess.run(["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"], shell=True)
-        
-    elif action == 'shutdown' and sys.platform.startswith('win'):
-        subprocess.run(["shutdown", "/s", "/t", "60"], shell=True)
-        emit('system_status', {'msg': 'PC가 60초 후 종료됩니다.'}, broadcast=True)
-        
-    elif action == 'restart' and sys.platform.startswith('win'):
-        subprocess.run(["shutdown", "/r", "/t", "60"], shell=True)
-        emit('system_status', {'msg': 'PC가 60초 후 재시작됩니다.'}, broadcast=True)
-        
-    elif action == 'cancel_shutdown' and sys.platform.startswith('win'):
-        subprocess.run(["shutdown", "/a"], shell=True)
-        if shutdown_timer:
-            shutdown_timer.cancel()
-            shutdown_timer = None
-        emit('system_status', {'msg': '종료 예약이 취소되었습니다.'}, broadcast=True)
-        
-    elif action == 'timer' and sys.platform.startswith('win'):
-        minutes = int(data.get('min', 0))
-        if minutes > 0:
-            seconds = minutes * 60
-            subprocess.run(["shutdown", "/s", "/t", str(seconds)], shell=True)
-            emit('system_status', {'msg': f'{minutes}분 후 종료 예약되었습니다.'}, broadcast=True)
-
-    elif action == 'lock' and sys.platform.startswith('win'):
-        subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"], shell=True)
-
-    elif action == 'close_server':
-        exit_gracefully()
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
 
 @socketio.on('open')
 def handle_open(data):
@@ -334,12 +210,12 @@ def handle_open(data):
     if url:
         sites = load_sites()
         
-        # 중복 제거 후 맨 앞에 추가 (전체 URL 저장)
+        # 중복 ?�거 ??�??�에 추�? (?�체 URL ?�??
         if url in sites['history']:
             sites['history'].remove(url)
         sites['history'].insert(0, url)
         
-        # 최대 20개 유지
+        # 최�? 20�??��?
         sites['history'] = sites['history'][:20]
         
         save_sites(sites)
@@ -353,13 +229,13 @@ def handle_get_sites():
 @socketio.on('add_favorite')
 def handle_add_favorite(data):
     # data: { name, url, icon }
-    name = data.get('name', '새 즐겨찾기')
+    name = data.get('name', '??즐겨찾기')
     url = data.get('url', '')
-    icon = data.get('icon', '⭐')
+    icon = data.get('icon', '�?)
     if not url: return
     
     sites = load_sites()
-    # 중복 체크 및 업데이트
+    # 중복 체크 �??�데?�트
     for fav in sites['favorites']:
         if fav['url'] == url:
             fav['name'] = name
@@ -413,7 +289,7 @@ def handle_analyze_site(data):
     
     config = load_ai_config()
     if not config['enabled']:
-        emit('system_status', {'msg': 'AI 분석 기능이 비활성화되어 있습니다.'})
+        emit('system_status', {'msg': 'AI 분석 기능??비활?�화?�어 ?�습?�다.'})
         return
         
     model = config['selected_model']
@@ -486,14 +362,14 @@ def handle_analyze_site(data):
             save_ai_config(config)
             emit('ai_mapping_result', {'url': url, 'mapping': mapping, 'usage': config['usage']})
         else:
-            raise Exception("AI 응답 해석 실패")
+            raise Exception("AI ?�답 ?�석 ?�패")
             
     except Exception as e:
-        emit('system_status', {'msg': f'AI 분석 실패: {str(e)}'})
+        emit('system_status', {'msg': f'AI 분석 ?�패: {str(e)}'})
 
 @socketio.on('sync_from_pc_silent')
 def handle_sync_from_pc_silent():
-    # URL만 가져와서 폰에 알림 (분석용)
+    # URL�?가?��????�에 ?�림 (분석??
     pyautogui.hotkey('ctrl', 'l', _pause=False)
     time.sleep(0.1)
     pyautogui.hotkey('ctrl', 'c', _pause=False)
@@ -505,10 +381,10 @@ def handle_sync_from_pc_silent():
 @socketio.on('sync_from_pc')
 def handle_sync_from_pc():
     import pyperclip
-    # 기존 클립보드 저장
+    # 기존 ?�립보드 ?�??
     old_clipboard = pyperclip.paste()
     
-    # 브라우저 주소창 포커스 및 복사 시도 (Ctrl+L, Ctrl+C)
+    # 브라?��? 주소�??�커??�?복사 ?�도 (Ctrl+L, Ctrl+C)
     pyautogui.hotkey('ctrl', 'l', _pause=False)
     time.sleep(0.1)
     pyautogui.hotkey('ctrl', 'c', _pause=False)
@@ -516,16 +392,16 @@ def handle_sync_from_pc():
     
     current_url = pyperclip.paste().strip()
     
-    # URL 형식이 아니면 클립보드 원복 및 취소
+    # URL ?�식???�니�??�립보드 ?�복 �?취소
     if not re.match(r'^https?://', current_url):
         pyperclip.copy(old_clipboard)
-        emit('system_status', {'msg': '브라우저에서 URL을 가져오지 못했습니다. (주소창을 선택해주세요)'})
+        emit('system_status', {'msg': '브라?��??�서 URL??가?�오지 못했?�니?? (주소창을 ?�택?�주?�요)'})
         return
 
-    # 폰으로 URL 전송
+    # ?�으�?URL ?�송
     emit('open_on_mobile', {'url': current_url})
     
-    # 히스토리에 추가
+    # ?�스?�리??추�?
     domain = extract_domain(current_url)
     sites = load_sites()
     if domain in sites['history']:
@@ -535,7 +411,7 @@ def handle_sync_from_pc():
     save_sites(sites)
     emit('sync_sites', sites, broadcast=True)
     
-    # 클립보드 원복
+    # ?�립보드 ?�복
     pyperclip.copy(old_clipboard)
 
 def get_local_ip():

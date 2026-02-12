@@ -50,12 +50,8 @@
             height: 100dvh;
             overflow: hidden;
             display: flex;
-<<<<<<< HEAD
             flex-direction: column;
             width: 100vw;
-=======
-            justify-content: center;
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
         }
 
         .app-container {
@@ -65,12 +61,8 @@
             width: 100%;
             max-width: 500px;
             position: relative;
-<<<<<<< HEAD
             background: var(--bg-color);
             overflow-x: hidden;
-=======
-            height: 100%;
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
         }
 
         /* Top Bar */
@@ -79,21 +71,15 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-<<<<<<< HEAD
             background: rgba(18, 18, 18, 0.95);
             backdrop-filter: blur(10px);
-=======
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
             z-index: 100;
         }
 
         .app-title {
             font-size: 20px;
             font-weight: 700;
-<<<<<<< HEAD
             color: #fff;
-=======
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
             letter-spacing: -0.5px;
             background: linear-gradient(135deg, #fff 30%, var(--primary-color));
             -webkit-background-clip: text;
@@ -112,13 +98,9 @@
             font-size: 11px;
             font-weight: 500;
             color: var(--text-secondary);
-<<<<<<< HEAD
             transition: all 0.3s ease;
             position: relative;
             z-index: 101;
-=======
-            backdrop-filter: blur(5px);
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
         }
 
         .status-dot {
@@ -191,7 +173,7 @@
             bottom: 10px;
             right: 10px;
             width: 40px;
-            /* 대폭 확장 */
+            /* ?�???�장 */
             background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -203,7 +185,7 @@
             writing-mode: vertical-rl;
             text-orientation: mixed;
             pointer-events: none;
-            /* 터치 이벤트는 touchpad-container에서 처리 */
+            /* ?�치 ?�벤?�는 touchpad-container?�서 처리 */
         }
 
         .scroll-strip::after {
@@ -279,7 +261,6 @@
             border-color: var(--primary-color);
         }
 
-<<<<<<< HEAD
         .card-icon { font-size: 24px; margin-bottom: 4px; }
         .card-label { font-size: 12px; font-weight: 500; opacity: 0.9; text-align: center; word-break: break-all; }
 
@@ -321,10 +302,6 @@
             font-size: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             z-index: 2;
-=======
-        .card-icon {
-            font-size: 24px;
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
         }
 
         .card-label {
@@ -374,7 +351,6 @@
             align-items: center;
             gap: 8px;
             border: 1px solid var(--border-color);
-<<<<<<< HEAD
             width: 100%;
             box-sizing: border-box;
         }
@@ -385,9 +361,6 @@
             gap: 12px;
             margin-bottom: 20px;
             width: 100%;
-=======
-            backdrop-filter: blur(var(--glass-blur));
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
         }
 
         input[type="text"] {
@@ -395,13 +368,8 @@
             min-width: 0;
             background: transparent;
             border: none;
-<<<<<<< HEAD
             color: white;
             padding: 12px 4px;
-=======
-            color: #fff;
-            padding: 8px 12px;
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
             font-size: 16px;
             outline: none;
             min-width: 0;
@@ -411,22 +379,12 @@
             background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             color: #fff;
             border: none;
-<<<<<<< HEAD
             border-radius: var(--radius-sm);
             padding: 10px 16px;
             font-weight: 600;
             font-size: 14px;
             white-space: nowrap;
             flex-shrink: 0;
-=======
-            border-radius: var(--radius-md);
-            padding: 16px;
-            font-weight: 700;
-            font-size: 15px;
-            box-shadow: 0 4px 15px var(--primary-glow);
-            transition: var(--transition);
-            text-align: center;
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
         }
 
         .btn-action-dark {
@@ -442,13 +400,8 @@
         .tab-bar {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-<<<<<<< HEAD
             padding: 10px 10px calc(var(--safe-bottom) + 10px);
             background: rgba(18, 18, 18, 0.95);
-=======
-            padding: 12px 12px calc(var(--safe-bottom) + 12px);
-            background: rgba(12, 12, 12, 0.82);
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--border-color);
             z-index: 100;
@@ -706,7 +659,6 @@
     <div class="app-container">
         <!-- Top Bar -->
         <div class="topbar">
-<<<<<<< HEAD
             <div style="display: flex; flex-direction: column;">
                 <div class="app-title">Air Mouse</div>
                 <div style="font-size: 10px; color: var(--text-secondary); font-family: monospace;">{{ server_url }}</div>
@@ -714,17 +666,6 @@
             <div class="status-badge" id="statusBadge">
                 <div class="status-dot"></div>
                 <span id="statusText">Disconnected</span>
-=======
-            <div class="app-title">Air Controller Pro</div>
-            <div style="display:flex; gap:12px; align-items:center;">
-                <div class="status-badge" id="statusBadge">
-                    <div class="status-dot"></div>
-                    <span id="statusText">연결 대기중</span>
-                </div>
-                <button class="btn-mouse"
-                    style="width:36px; height:36px; padding:0; border:none; background:transparent; font-size:20px;"
-                    onclick="showSettingsModal()">⚙️</button>
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
             </div>
         </div>
 
@@ -734,75 +675,68 @@
                 <div class="touchpad-container" id="touchpad">
                     <div class="touch-pattern"></div>
                     <div class="scroll-strip"></div>
-                    <div class="touch-hint">이곳을 터치하여 마우스 조작<br>오른쪽 회색 바를 밀어 스크롤</div>
+                    <div class="touch-hint">?�곳???�치?�여 마우??조작<br>?�른�??�색 바�? 밀???�크�?/div>
                 </div>
                 <div class="mouse-controls">
-                    <div class="btn-mouse" onclick="emitClick('left')">왼쪽 클릭</div>
-                    <div class="btn-mouse" onclick="emitClick('right')">오른쪽 클릭</div>
+                    <div class="btn-mouse" onclick="emitClick('left')">?�쪽 ?�릭</div>
+                    <div class="btn-mouse" onclick="emitClick('right')">?�른�??�릭</div>
                 </div>
             </div>
 
             <!-- Panel: Inputs & Controls -->
             <div class="panel" id="panel-input">
-<<<<<<< HEAD
                 <h2>Media</h2>
-=======
-                <div class="section-header">
-                    <h2>미디어 컨트롤</h2>
-                </div>
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
                 <div class="control-grid">
                     <div class="card-btn" data-ai-id="rewd" onclick="emitKey('left')"><span
-                            class="card-icon">⏪</span><span class="card-label">-5s</span></div>
+                            class="card-icon">??/span><span class="card-label">-5s</span></div>
                     <div class="card-btn" data-ai-id="playpause" onclick="emitKey('playpause')"><span
-                            class="card-icon">⏯</span><span class="card-label">재생/일시정지</span></div>
+                            class="card-icon">??/span><span class="card-label">?�생/?�시?��?</span></div>
                     <div class="card-btn" data-ai-id="fwd" onclick="emitKey('right')"><span
-                            class="card-icon">⏩</span><span class="card-label">+5s</span></div>
+                            class="card-icon">??/span><span class="card-label">+5s</span></div>
                     <div class="card-btn" data-ai-id="volumedown" onclick="emitKey('volumedown')"><span
-                            class="card-icon">🔉</span><span class="card-label">볼륨 -</span></div>
+                            class="card-icon">?��</span><span class="card-label">볼륨 -</span></div>
                     <div class="card-btn" data-ai-id="volumemute" onclick="emitKey('volumemute')"><span
-                            class="card-icon">🔇</span><span class="card-label">음소거</span></div>
+                            class="card-icon">?��</span><span class="card-label">?�소�?/span></div>
                     <div class="card-btn" data-ai-id="volumeup" onclick="emitKey('volumeup')"><span
-                            class="card-icon">🔊</span><span class="card-label">볼륨 +</span></div>
+                            class="card-icon">?��</span><span class="card-label">볼륨 +</span></div>
                     <div class="card-btn" data-ai-id="prev" onclick="emitKey('prevtrack')"><span
-                            class="card-icon">⏮</span><span class="card-label">이전 곡</span></div>
+                            class="card-icon">??/span><span class="card-label">?�전 �?/span></div>
                     <div class="card-btn" data-ai-id="space" onclick="emitKey('space')"><span
-                            class="card-icon">␣</span><span class="card-label">스페이스</span></div>
+                            class="card-icon">??/span><span class="card-label">?�페?�스</span></div>
                     <div class="card-btn" data-ai-id="next" onclick="emitKey('nexttrack')"><span
-                            class="card-icon">⏭</span><span class="card-label">다음 곡</span></div>
+                            class="card-icon">??/span><span class="card-label">?�음 �?/span></div>
                 </div>
 
                 <div class="section-header">
-                    <h2>브라우저 제어</h2>
+                    <h2>브라?��? ?�어</h2>
                 </div>
                 <div class="control-grid">
                     <div class="card-btn" data-ai-id="refresh" onclick="emitKey('f5')"><span
-                            class="card-label">새로고침</span></div>
+                            class="card-label">?�로고침</span></div>
                     <div class="card-btn" data-ai-id="fullscreen" onclick="emitKey('f')"><span
-                            class="card-label">전체화면</span></div>
+                            class="card-label">?�체?�면</span></div>
                     <div class="card-btn" data-ai-id="back" onclick="emitHotkey(['alt', 'left'])"><span
-                            class="card-label">뒤로가기</span>
+                            class="card-label">?�로가�?/span>
                     </div>
                     <div class="card-btn" data-ai-id="forward" onclick="emitHotkey(['alt', 'right'])"><span
-                            class="card-label">앞으로가기</span>
+                            class="card-label">?�으로�?�?/span>
                     </div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 't'])"><span class="card-label">새 탭</span></div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'w'])"><span class="card-label">탭 닫기</span></div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])"><span class="card-label">이전
-                            탭</span></div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])"><span class="card-label">다음 탭</span>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 't'])"><span class="card-label">????/span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'w'])"><span class="card-label">???�기</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])"><span class="card-label">?�전
+                            ??/span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])"><span class="card-label">?�음 ??/span>
                     </div>
-                    <div class="card-btn" onclick="emitKey('browserhome')"><span class="card-label">홈</span></div>
+                    <div class="card-btn" onclick="emitKey('browserhome')"><span class="card-label">??/span></div>
                 </div>
 
-<<<<<<< HEAD
                 <h2 style="margin-top: 24px;">Text Input</h2>
                 <div class="input-stack">
                     <div class="input-wrapper">
                         <input type="text" id="textInput" placeholder="Enter text...">
                         <button class="btn-send" onclick="sendText()">Send</button>
                     </div>
-                    <div class="input-hint">텍스트를 입력하고 Send를 누르면 PC에 입력(붙여넣기)됩니다.</div>
+                    <div class="input-hint">?�스?��? ?�력?�고 Send�??�르�?PC???�력(붙여?�기)?�니??</div>
                 </div>
                 
                 <h2>Controls</h2>
@@ -840,48 +774,24 @@
                 </div>
 
                 <h2>Sensitivity</h2>
-=======
-                <div class="section-header">
-                    <h2>텍스트 입력</h2>
-                </div>
-                <div class="text-input-row" style="margin-bottom:12px;">
-                    <input type="text" id="textInput" placeholder="입력할 내용을 적으세요...">
-                    <button class="btn-mouse" style="width:48px; border:none;" onclick="showVoiceModal()">🎤</button>
-                </div>
-                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; margin-bottom: 24px;">
-                    <button class="btn-send-full" onclick="sendText()">입력 전송</button>
-                    <button class="btn-action-dark" onclick="emitKey('enter')">엔터</button>
-                    <button class="btn-action-dark" onclick="emitKey('backspace')">지우기</button>
-                </div>
-
-                <div class="section-header">
-                    <h2>설정</h2>
-                </div>
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
                 <div class="range-wrap">
-                    <div class="range-header"><span>마우스 감도</span><span id="mouseVal">2.5</span></div>
+                    <div class="range-header"><span>마우??감도</span><span id="mouseVal">2.5</span></div>
                     <input type="range" id="mouseSens" min="1.0" max="5.0" step="0.5" value="2.5">
                 </div>
-<<<<<<< HEAD
                 <div class="range-wrap" style="margin-bottom: 20px;">
                     <div class="range-header">
                         <span>Scroll Speed</span>
                         <span id="scrollVal">15</span>
                     </div>
-=======
-                <div class="range-wrap" style="margin-bottom:20px;">
-                    <div class="range-header"><span>스크롤 감도</span><span id="scrollVal">15</span></div>
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
                     <input type="range" id="scrollSens" min="5" max="50" step="5" value="15">
                 </div>
 
                 <button class="btn-action-dark" style="color:#ff7675; border-color: rgba(255,118,117,0.2);"
-                    onclick="showTimerModal()">💤 PC 예약 종료 설정</button>
+                    onclick="showTimerModal()">?�� PC ?�약 종료 ?�정</button>
             </div>
 
             <!-- Panel: Apps -->
             <div class="panel" id="panel-apps">
-<<<<<<< HEAD
                 <h2>Favorites</h2>
                 <div id="favoritesList" class="grid-shortcuts" style="margin-bottom: 24px;">
                     <!-- Dynamic favorites injected here -->
@@ -904,7 +814,7 @@
                     <div id="currentTabUrl" style="font-size: 11px; color: var(--primary-color); margin-bottom: 12px; word-break: break-all; font-family: monospace;"></div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <button class="btn-send" id="openTabBtn">Open Here</button>
-                        <button class="btn-icon" id="favTabBtn">⭐ Add Fav</button>
+                        <button class="btn-icon" id="favTabBtn">�?Add Fav</button>
                     </div>
                     <button class="btn-icon" style="width: 100%; margin-top: 8px;" onclick="document.getElementById('currentTabContainer').style.display='none'">Close</button>
                 </div>
@@ -927,49 +837,6 @@
                     <div class="card-btn" onclick="reserveSleep()">
                         <span class="card-label">Sleep PC</span>
                     </div>
-=======
-                <div id="aiAnalysisBox" style="margin-bottom: 20px; display:none;">
-                    <div class="section-header">
-                        <h2>실시간 사이트 분석</h2>
-                    </div>
-                    <div class="card-btn"
-                        style="background: linear-gradient(135deg, rgba(162, 155, 254, 0.1), rgba(116, 185, 255, 0.1)); border-color: var(--accent-color);"
-                        onclick="analyzeCurrentSite()">
-                        <span class="card-icon">🧠</span>
-                        <span class="card-label">현재 사이트 분석 및 버튼 매핑</span>
-                    </div>
-                    <div id="mappingStatus"
-                        style="font-size:11px; text-align:center; color:var(--primary-color); margin-top:8px;"></div>
-                </div>
-
-                <div class="section-header">
-                    <h2>즐겨찾기</h2>
-                </div>
-                <div class="grid-shortcuts" id="favoritesGrid">
-                    <!-- 즐겨찾기 아이템 동적 생성 -->
-                </div>
-
-                <div class="section-header">
-                    <h2>URL 직접 열기</h2>
-                </div>
-                <div class="text-input-row" style="margin-bottom:24px;">
-                    <input type="text" id="appUrlInput" placeholder="https://...">
-                    <button class="btn-mouse" style="padding: 0 16px; border:none;" onclick="openAppUrl()">이동</button>
-                </div>
-
-                <div class="section-header collapsed" onclick="toggleHistory(this)">
-                    <h2>최근 방문 기록</h2>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="collapsible-content">
-                    <div class="site-list" id="historyList">
-                        <!-- 히스토리 아이템 동적 생성 -->
-                    </div>
-                </div>
-
-                <div class="mt-auto pt-10">
-                    <button class="btn-send-full" style="width:100%;" onclick="syncFromPc()">🔄 PC 화면 내 폰으로 동기화</button>
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
                 </div>
             </div>
         </div>
@@ -978,15 +845,15 @@
         <div class="tab-bar">
             <div class="nav-item active" onclick="switchTab('touch', this)">
                 <div class="nav-icon icon-touch"></div>
-                <span>터치</span>
+                <span>?�치</span>
             </div>
             <div class="nav-item" onclick="switchTab('input', this)">
                 <div class="nav-icon icon-input"></div>
-                <span>컨트롤</span>
+                <span>컨트�?/span>
             </div>
             <div class="nav-item" onclick="switchTab('apps', this)">
                 <div class="nav-icon icon-apps"></div>
-                <span>앱 / 사이트</span>
+                <span>??/ ?�이??/span>
             </div>
         </div>
     </div>
@@ -995,20 +862,20 @@
     <!-- Timer Modal -->
     <div class="modal-overlay" id="timerModal">
         <div class="modal-content">
-            <div class="modal-title">PC 예약 종료</div>
+            <div class="modal-title">PC ?�약 종료</div>
             <div class="preset-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(20)">20분 후</button>
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(40)">40분 후</button>
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(60)">1시간 후</button>
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(120)">2시간 후</button>
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(20)">20�???/button>
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(40)">40�???/button>
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(60)">1?�간 ??/button>
+                <button class="btn-mouse" style="height:46px;" onclick="setTimer(120)">2?�간 ??/button>
             </div>
             <div class="text-input-row">
-                <input type="text" id="manualMinutes" placeholder="입력 (단위: 분)">
-                <button class="btn-mouse" style="padding:0 12px;" onclick="setManualTimer()">예약</button>
+                <input type="text" id="manualMinutes" placeholder="?�력 (?�위: �?">
+                <button class="btn-mouse" style="padding:0 12px;" onclick="setManualTimer()">?�약</button>
             </div>
             <div style="margin-top:20px; display:flex; gap:10px;">
                 <button class="btn-action-dark" style="flex:1" onclick="closeModals()">취소</button>
-                <button class="btn-action-dark" style="flex:1; color:#ff7675;" onclick="cancelShutdown()">예약 취소</button>
+                <button class="btn-action-dark" style="flex:1; color:#ff7675;" onclick="cancelShutdown()">?�약 취소</button>
             </div>
         </div>
     </div>
@@ -1016,7 +883,7 @@
     <!-- Starring Choice Modal -->
     <div class="modal-overlay" id="starChoiceModal">
         <div class="modal-content">
-            <div class="modal-title">즐겨찾기 저장 방식 선택</div>
+            <div class="modal-title">즐겨찾기 ?�??방식 ?�택</div>
             <div id="choiceContainer"></div>
             <button class="btn-action-dark" style="width:100%; margin-top:10px;" onclick="closeModals()">취소</button>
         </div>
@@ -1025,15 +892,15 @@
     <!-- Favorite Edit Modal -->
     <div class="modal-overlay" id="favEditModal">
         <div class="modal-content">
-            <div class="modal-title">즐겨찾기 정보 편집</div>
+            <div class="modal-title">즐겨찾기 ?�보 ?�집</div>
             <div class="text-input-row" style="margin-bottom:10px;">
-                <input type="text" id="favNameInput" placeholder="이름 (예: 유튜브)">
+                <input type="text" id="favNameInput" placeholder="?�름 (?? ?�튜�?">
             </div>
             <div class="text-input-row" style="margin-bottom:15px;">
-                <input type="text" id="favIconInput" placeholder="이모지 또는 아이콘 (예: 🎬)">
+                <input type="text" id="favIconInput" placeholder="?�모지 ?�는 ?�이�?(?? ?��)">
             </div>
             <div id="favUrlLabel" style="font-size:11px; color:#666; margin-bottom:20px; word-break:break-all;"></div>
-            <button class="btn-send-full" style="width:100%;" id="saveFavBtn">저장하기</button>
+            <button class="btn-send-full" style="width:100%;" id="saveFavBtn">?�?�하�?/button>
             <button class="btn-action-dark" style="width:100%; margin-top:10px;" onclick="closeModals()">취소</button>
         </div>
     </div>
@@ -1041,7 +908,7 @@
     <!-- Voice Modal -->
     <div class="modal-overlay" id="voiceModal">
         <div class="modal-content" style="text-align:center;">
-            <div class="modal-title">말씀해 주세요...</div>
+            <div class="modal-title">말�???주세??..</div>
             <div id="voiceResult"
                 style="font-size:18px; font-weight:600; min-height:1.5em; color:var(--primary-color); margin:20px 0;">
             </div>
@@ -1052,34 +919,34 @@
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-content">
-            <div class="modal-title">AI 및 앱 설정</div>
+            <div class="modal-title">AI �????�정</div>
 
             <div class="section-header">
-                <h2>AI 분석 기능 사용</h2>
+                <h2>AI 분석 기능 ?�용</h2>
             </div>
             <label class="choice-btn" style="padding:12px; cursor:pointer;">
                 <input type="checkbox" id="aiEnabledToggle" onchange="toggleAiPower()" style="width:20px; height:20px;">
                 <div class="choice-text">
-                    <div>AI 버튼 자동 매핑 활성화</div>
-                    <div>체크 해제 시 관련 버튼이 비활성화됩니다.</div>
+                    <div>AI 버튼 ?�동 매핑 ?�성??/div>
+                    <div>체크 ?�제 ??관??버튼??비활?�화?�니??</div>
                 </div>
             </label>
 
             <div id="aiConfigInputs" style="opacity:0.5; pointer-events:none; transition:0.3s;">
                 <div class="section-header">
-                    <h2>모델 선택</h2>
+                    <h2>모델 ?�택</h2>
                 </div>
                 <div class="choice-btn" style="padding:10px; flex-direction:column; gap:8px;">
                     <select id="aiModelSelect"
                         style="width:100%; height:40px; background:var(--surface-color); color:#fff; border-radius:8px; border:1px solid var(--border-color); outline:none; padding:0 10px;">
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (추천/저렴)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (추천/?�??</option>
                         <option value="gpt-4o-mini">GPT-4o Mini</option>
                         <option value="deepseek-chat">DeepSeek Chat</option>
                     </select>
                 </div>
 
                 <div class="section-header">
-                    <h2>API 키 입력</h2>
+                    <h2>API ???�력</h2>
                 </div>
                 <div class="text-input-row" style="margin-bottom:8px;">
                     <input type="password" id="key-google" placeholder="Google AI API Key">
@@ -1092,21 +959,21 @@
                 </div>
 
                 <div class="section-header">
-                    <h2>사용량 및 비용 (KRW)</h2>
+                    <h2>?�용??�?비용 (KRW)</h2>
                 </div>
                 <div class="range-wrap" style="padding:12px; font-size:13px; font-weight:500;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                        <span>최근 분석 비용</span><span id="lastCost" style="color:var(--primary-color);">₩0</span>
+                        <span>최근 분석 비용</span><span id="lastCost" style="color:var(--primary-color);">??</span>
                     </div>
                     <div style="display:flex; justify-content:space-between;">
-                        <span>누적 합계</span><span id="totalCost" style="color:var(--accent-color);">₩0</span>
+                        <span>?�적 ?�계</span><span id="totalCost" style="color:var(--accent-color);">??</span>
                     </div>
                 </div>
             </div>
 
             <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn-action-dark" style="flex:1" onclick="closeModals()">닫기</button>
-                <button class="btn-send-full" style="flex:1" onclick="saveAiSettings()">설정 저장</button>
+                <button class="btn-action-dark" style="flex:1" onclick="closeModals()">?�기</button>
+                <button class="btn-send-full" style="flex:1" onclick="saveAiSettings()">?�정 ?�??/button>
             </div>
         </div>
     </div>
@@ -1116,11 +983,11 @@
         const statusBadge = document.getElementById('statusBadge');
         const statusText = document.getElementById('statusText');
 
-        socket.on('connect', () => { statusBadge.classList.add('connected'); statusText.textContent = '연결됨'; socket.emit('get_sites'); });
-        socket.on('disconnect', () => { statusBadge.classList.remove('connected'); statusText.textContent = '연결 끊김'; });
+        socket.on('connect', () => { statusBadge.classList.add('connected'); statusText.textContent = '?�결??; socket.emit('get_sites'); });
+        socket.on('disconnect', () => { statusBadge.classList.remove('connected'); statusText.textContent = '?�결 ?��?'; });
         socket.on('sync_sites', (data) => { renderSites(data); });
         socket.on('system_status', (data) => { alert(data.msg); });
-        socket.on('open_on_mobile', (data) => { if (confirm('PC에서 가져온 페이지를 열까요?\n' + data.url)) window.open(data.url, '_blank'); });
+        socket.on('open_on_mobile', (data) => { if (confirm('PC?�서 가?�온 ?�이지�??�까??\n' + data.url)) window.open(data.url, '_blank'); });
         socket.on('domain_info', (data) => { showStarChoice(data); });
 
         socket.on('ai_config_status', (config) => {
@@ -1131,16 +998,12 @@
             applyAiMapping(data);
         });
 
-<<<<<<< HEAD
-        // === 상태 관리 변수 ===
+        // === ?�태 관�?변??===
         let mouseSensitivity = 1.5;
         let scrollSensitivity = 15;
         
         let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         let recentHistory = JSON.parse(localStorage.getItem('recentHistory') || '[]');
-=======
-        socket.emit('get_ai_config');
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
 
         // Settings
         let mouseSens = localStorage.getItem('mouseSens') || 2.5, scrollSens = localStorage.getItem('scrollSens') || 15;
@@ -1158,11 +1021,10 @@
             vibrate(10);
         }
 
-<<<<<<< HEAD
-        // 초기 앱 리스트 렌더링
+        // 초기 ??리스???�더�?
         renderAppsLists();
 
-        // 감도 조절 이벤트
+        // 감도 조절 ?�벤??
         document.getElementById('mouseSens').addEventListener('input', (e) => {
             mouseSensitivity = parseFloat(e.target.value);
             document.getElementById('mouseVal').textContent = mouseSensitivity;
@@ -1175,7 +1037,7 @@
             localStorage.setItem('scrollSens', scrollSensitivity);
         });
 
-        // === 앱 리스트 관리 ===
+        // === ??리스??관�?===
         function renderAppsLists() {
             const favList = document.getElementById('favoritesList');
             const recentSection = document.getElementById('recent-section');
@@ -1188,7 +1050,7 @@
                     <div class="card-btn small">
                         <div class="btn-delete" onclick="removeFromFavorites(${index}); event.stopPropagation();">×</div>
                         <div onclick="openUrl('${item.url}')" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                            <span class="card-icon">⭐</span>
+                            <span class="card-icon">�?/span>
                             <span class="card-label">${item.label || getHostname(item.url)}</span>
                         </div>
                     </div>
@@ -1197,7 +1059,7 @@
                 favList.style.display = 'grid';
                 favList.innerHTML = `
                     <div class="card-btn small" style="grid-column: 1 / -1; background: transparent; border: 1px dashed var(--border-color); opacity: 0.6;">
-                        <span class="card-label">즐겨찾기가 없습니다.<br>기록에서 ⭐를 눌러 추가하세요.</span>
+                        <span class="card-label">즐겨찾기가 ?�습?�다.<br>기록?�서 ⭐�? ?�러 추�??�세??</span>
                     </div>
                 `;
             }
@@ -1211,10 +1073,10 @@
                     </div>
                 ` + recentHistory.map((url, index) => `
                     <div class="card-btn small">
-                        <div class="btn-fav" onclick="addToFavorites('${url}'); event.stopPropagation();">⭐</div>
+                        <div class="btn-fav" onclick="addToFavorites('${url}'); event.stopPropagation();">�?/div>
                         <div class="btn-delete" onclick="removeFromRecent(${index}); event.stopPropagation();">×</div>
                         <div onclick="openUrl('${url}')" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                            <span class="card-icon">🕒</span>
+                            <span class="card-icon">?��</span>
                             <span class="card-label">${getHostname(url)}</span>
                         </div>
                     </div>
@@ -1253,7 +1115,7 @@
         }
 
         function clearRecentHistory() {
-            if (!confirm('최근 방문 기록을 모두 삭제할까요?')) return;
+            if (!confirm('최근 방문 기록??모두 ??��?�까??')) return;
             recentHistory = [];
             localStorage.setItem('recentHistory', JSON.stringify(recentHistory));
             renderAppsLists();
@@ -1266,13 +1128,13 @@
             
             let choice;
             if (url !== domainOnly && url !== domainOnly + '/') {
-                choice = confirm(`즐겨찾기에 어떤 주소를 저장할까요?\n\n 확인(OK): 전체 주소\n 취소(Cancel): 도메인만 (${hostname})`);
+                choice = confirm(`즐겨찾기???�떤 주소�??�?�할까요?\n\n ?�인(OK): ?�체 주소\n 취소(Cancel): ?�메?�만 (${hostname})`);
             } else {
                 choice = true; // Already a domain
             }
 
             const finalUrl = choice ? url : domainOnly;
-            const label = prompt('즐겨찾기 이름을 입력하세요:', getHostname(finalUrl));
+            const label = prompt('즐겨찾기 ?�름???�력?�세??', getHostname(finalUrl));
             if (label === null) return;
 
             favorites.push({ url: finalUrl, label: label });
@@ -1282,31 +1144,31 @@
         }
 
         function removeFromFavorites(index) {
-            if (!confirm('즐겨찾기에서 삭제할까요?')) return;
+            if (!confirm('즐겨찾기?�서 ??��?�까??')) return;
             favorites.splice(index, 1);
             localStorage.setItem('favorites', JSON.stringify(favorites));
             renderAppsLists();
             vibrate(10);
         }
 
-        // === 탭 전환 ===
+        // === ???�환 ===
         function switchTab(tabName, el) {
-            // 패널 전환
+            // ?�널 ?�환
             document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
             document.getElementById(`panel-${tabName}`).classList.add('active');
             
-            // 내비 아이콘 전환
+            // ?�비 ?�이�??�환
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             if (el) {
                 el.classList.add('active');
             } else {
-                // el이 없는 경우 (예: 초기 로드 등) tabName으로 찾아서 active
+                // el???�는 경우 (?? 초기 로드 ?? tabName?�로 찾아??active
                 const index = { 'touch': 0, 'input': 1, 'apps': 2 }[tabName];
                 document.querySelectorAll('.nav-item')[index].classList.add('active');
             }
         }
 
-        // === 소켓 송신 함수 ===
+        // === ?�켓 ?�신 ?�수 ===
         function emitClick(btn) {
             socket.emit('click', { btn });
             vibrate(30);
@@ -1324,21 +1186,21 @@
 
         function emitSystem(action) {
             if (action === 'sleep') {
-                if (!confirm('PC를 절전 모드로 전환할까요?')) return;
+                if (!confirm('PC�??�전 모드�??�환?�까??')) return;
             }
             socket.emit('system', { action });
             vibrate(30);
         }
 
         function reserveSleep() {
-            const mins = prompt('몇 분 후에 PC를 절전 모드로 전환할까요? (숫자만 입력)', '30');
+            const mins = prompt('�?�??�에 PC�??�전 모드�??�환?�까?? (?�자�??�력)', '30');
             if (mins === null) return;
             const delay = parseInt(mins);
             if (isNaN(delay) || delay < 0) {
-                alert('올바른 시간을 입력해주세요.');
+                alert('?�바�??�간???�력?�주?�요.');
                 return;
             }
-            if (!confirm(`${delay}분 후에 PC를 절전 모드로 전환할까요?`)) return;
+            if (!confirm(`${delay}�??�에 PC�??�전 모드�??�환?�까??`)) return;
             socket.emit('system', { action: 'sleep', delay: delay });
             vibrate(30);
         }
@@ -1354,7 +1216,7 @@
 
         socket.on('current_tab', (data) => {
             if (data.error) {
-                alert('탭 정보를 가져오는데 실패했습니다: ' + data.error);
+                alert('???�보�?가?�오?�데 ?�패?�습?�다: ' + data.error);
                 return;
             }
             const container = document.getElementById('currentTabContainer');
@@ -1406,27 +1268,10 @@
                 return trimmed;
             }
             return `https://${trimmed}`;
-=======
-        function toggleHistory(el) {
-            el.classList.toggle('collapsed');
-            vibrate(5);
-        }
-
-        // Common Emitters
-        function emitClick(btn) { socket.emit('click', { btn }); vibrate(30); }
-        function emitKey(key) { socket.emit('key', { key }); vibrate(15); }
-        function emitHotkey(keys) { socket.emit('hotkey', { keys }); vibrate(20); }
-        function openUrl(url) { socket.emit('open', { url }); vibrate(40); }
-
-        function sendText() {
-            const input = document.getElementById('textInput');
-            if (input.value) { socket.emit('type', { text: input.value }); input.value = ''; vibrate(40); }
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
         }
 
         function openAppUrl() {
             const input = document.getElementById('appUrlInput');
-<<<<<<< HEAD
             const value = input.value;
             if (!value) return;
             const normalized = normalizeUrl(value);
@@ -1434,7 +1279,7 @@
             input.value = '';
         }
         
-        // 엔터키 처리
+        // ?�터??처리
         document.getElementById('textInput').addEventListener('keydown', (e) => {
             if(e.key === 'Enter') {
                 e.preventDefault();
@@ -1446,7 +1291,7 @@
             if(navigator.vibrate) navigator.vibrate(ms);
         }
 
-        // === 터치패드 로직 ===
+        // === ?�치?�드 로직 ===
         const touchpad = document.getElementById('touchpad');
         let lastX = 0;
         let lastY = 0;
@@ -1455,34 +1300,6 @@
         let mode = 'move'; // 'move' or 'scroll'
         let lastScrollY = 0;
         let hasMoved = false;
-=======
-            if (input.value) { let url = input.value.trim(); if (!/^https?:\/\//i.test(url)) url = 'https://' + url; openUrl(url); input.value = ''; }
-        }
-
-        function syncFromPc() { socket.emit('sync_from_pc'); vibrate(30); }
-
-        // AI & Settings
-        function showSettingsModal() { document.getElementById('settingsModal').classList.add('active'); socket.emit('get_ai_config'); }
-
-        function updateAiConfigUI(config) {
-            document.getElementById('aiEnabledToggle').checked = config.enabled;
-            document.getElementById('aiModelSelect').value = config.selected_model;
-            document.getElementById('key-google').value = config.api_keys.google || "";
-            document.getElementById('key-openai').value = config.api_keys.openai || "";
-            document.getElementById('key-deepseek').value = config.api_keys.deepseek || "";
-            document.getElementById('lastCost').textContent = `₩${config.usage.last_cost.toLocaleString()}`;
-            document.getElementById('totalCost').textContent = `₩${config.usage.total_krw.toLocaleString()}`;
-
-            toggleAiInputs(config.enabled);
-            document.getElementById('aiAnalysisBox').style.display = config.enabled ? 'block' : 'none';
-        }
-
-        function toggleAiPower() {
-            const enabled = document.getElementById('aiEnabledToggle').checked;
-            toggleAiInputs(enabled);
-            if (!enabled) applyAiMapping({ mapping: null }); // Reset
-        }
->>>>>>> b7bf8a8b4ac9df578bf91e610157c54ef103f526
 
         function toggleAiInputs(enabled) {
             const container = document.getElementById('aiConfigInputs');
@@ -1506,8 +1323,8 @@
         }
 
         function analyzeCurrentSite() {
-            // 현재 활성화된 브라우저 URL을 가져오기 위해 sync_from_pc의 로직 일부 활용 (서버 측 구현 필요)
-            document.getElementById('mappingStatus').textContent = "사이트 분석 중... (비용이 발생할 수 있습니다)";
+            // ?�재 ?�성?�된 브라?��? URL??가?�오�??�해 sync_from_pc??로직 ?��? ?�용 (?�버 �?구현 ?�요)
+            document.getElementById('mappingStatus').textContent = "?�이??분석 �?.. (비용??발생?????�습?�다)";
             socket.emit('sync_from_pc_silent'); // Silent version to get URL without opening on mobile
             vibrate(20);
         }
@@ -1521,7 +1338,7 @@
             const statusEl = document.getElementById('mappingStatus');
 
             if (mapping) {
-                statusEl.textContent = `분석 완료: ${mapping.site_name || data.url}`;
+                statusEl.textContent = `분석 ?�료: ${mapping.site_name || data.url}`;
                 statusEl.style.color = "#55efc4";
                 vibrate([30, 50, 30]);
             } else {
@@ -1529,7 +1346,7 @@
                 statusEl.style.color = "var(--primary-color)"; // Reset color
             }
 
-            // 모든 버튼 초기화 후 매핑 적용
+            // 모든 버튼 초기????매핑 ?�용
             const allAiButtons = document.querySelectorAll('.card-btn[data-ai-id]');
             allAiButtons.forEach(btn => {
                 const aiId = btn.getAttribute('data-ai-id');
@@ -1548,16 +1365,16 @@
                     btn.style.pointerEvents = "auto";
                     btn.style.borderColor = "var(--primary-color)";
                     btn.style.boxShadow = "0 0 10px var(--primary-glow)";
-                    // 단축키 오버라이드 로직 (필요 시 emitKey 수정)
+                    // ?�축???�버?�이??로직 (?�요 ??emitKey ?�정)
                     btn.onclick = () => { emitKey(mapping[aiId]); vibrate(20); };
                 } else if (["refresh", "back", "forward"].includes(aiId)) {
-                    // 필수 브라우저 기능은 유지
+                    // ?�수 브라?��? 기능?� ?��?
                     btn.style.opacity = "1";
                     btn.style.pointerEvents = "auto";
                     btn.style.borderColor = "var(--border-color)"; // Keep default border
                     btn.style.boxShadow = "none"; // No glow for unmapped but active
                 } else {
-                    // 매핑되지 않은 버튼 비활성화
+                    // 매핑?��? ?��? 버튼 비활?�화
                     btn.style.opacity = "0.2";
                     btn.style.pointerEvents = "none";
                     btn.style.boxShadow = "none";
@@ -1573,7 +1390,7 @@
             data.favorites.forEach(fav => {
                 const item = document.createElement('div');
                 item.className = 'card-btn';
-                item.innerHTML = `<span class="card-icon">${fav.icon || '⭐'}</span><span class="card-label">${fav.name}</span>`;
+                item.innerHTML = `<span class="card-icon">${fav.icon || '�?}</span><span class="card-label">${fav.name}</span>`;
                 item.onclick = () => openUrl(fav.url);
                 // Long press for deletion? Simplified for now with an edit button maybe later.
                 fGrid.appendChild(item);
@@ -1586,14 +1403,14 @@
                 item.className = 'site-item';
                 const domain = extractDisplayDomain(site);
                 item.innerHTML = `
-                    <div class="site-icon-box">🔗</div>
+                    <div class="site-icon-box">?��</div>
                     <div class="site-info" onclick="openUrl('${site}')">
                         <span class="site-name">${domain}</span>
                         <span class="site-url">${site}</span>
                     </div>
                     <div class="site-actions">
-                        <button class="btn-site-action" onclick="starHistory('${site}')">⭐</button>
-                        <button class="btn-site-action" onclick="deleteHistory('${site}')">🗑️</button>
+                        <button class="btn-site-action" onclick="starHistory('${site}')">�?/button>
+                        <button class="btn-site-action" onclick="deleteHistory('${site}')">?���?/button>
                     </div>
                 `;
                 hList.appendChild(item);
@@ -1615,16 +1432,16 @@
             const container = document.getElementById('choiceContainer');
             container.innerHTML = `
                 <button class="choice-btn" onclick="startFavEdit('${data.url}')">
-                    <span class="choice-icon">📄</span>
+                    <span class="choice-icon">?��</span>
                     <div class="choice-text">
-                        <div>이 페이지 전체 저장</div>
+                        <div>???�이지 ?�체 ?�??/div>
                         <div>${data.url}</div>
                     </div>
                 </button>
                 <button class="choice-btn" onclick="startFavEdit('${data.domain}')">
-                    <span class="choice-icon">🏠</span>
+                    <span class="choice-icon">?��</span>
                     <div class="choice-text">
-                        <div>기본 도메인 저장</div>
+                        <div>기본 ?�메???�??/div>
                         <div>${data.domain}</div>
                     </div>
                 </button>
@@ -1637,26 +1454,26 @@
             const modal = document.getElementById('favEditModal');
             document.getElementById('favUrlLabel').textContent = url;
             document.getElementById('favNameInput').value = extractDisplayDomain(url);
-            document.getElementById('favIconInput').value = '⭐';
+            document.getElementById('favIconInput').value = '�?;
             document.getElementById('saveFavBtn').onclick = () => saveFavorite(url);
             modal.classList.add('active');
         }
 
         function saveFavorite(url) {
             const name = document.getElementById('favNameInput').value || extractDisplayDomain(url);
-            const icon = document.getElementById('favIconInput').value || '⭐';
+            const icon = document.getElementById('favIconInput').value || '�?;
             socket.emit('add_favorite', { name, url, icon });
             closeModals();
             vibrate(50);
         }
 
-        function deleteHistory(url) { if (confirm('이 방문 기록을 삭제할까요?')) { socket.emit('delete_site', { url, type: 'history' }); vibrate(20); } }
+        function deleteHistory(url) { if (confirm('??방문 기록????��?�까??')) { socket.emit('delete_site', { url, type: 'history' }); vibrate(20); } }
 
         // Modals
         function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); stopRecognition(); }
         function showTimerModal() { document.getElementById('timerModal').classList.add('active'); }
         function setTimer(min) { socket.emit('system', { action: 'timer', min }); closeModals(); }
-        function setManualTimer() { const min = parseInt(document.getElementById('manualMinutes').value); if (min > 0) setTimer(min); else alert('분을 입력해주세요.'); }
+        function setManualTimer() { const min = parseInt(document.getElementById('manualMinutes').value); if (min > 0) setTimer(min); else alert('분을 ?�력?�주?�요.'); }
         function cancelShutdown() { socket.emit('system', { action: 'cancel_shutdown' }); closeModals(); }
 
         // STT
@@ -1666,7 +1483,7 @@
             recognition.lang = 'ko-KR';
             recognition.onresult = (e) => { const t = e.results[0][0].transcript; document.getElementById('voiceResult').textContent = t; document.getElementById('textInput').value = t; setTimeout(closeModals, 1000); };
         }
-        function showVoiceModal() { if (!recognition) return alert('음성 인식을 지원하지 않는 브라우저입니다.'); document.getElementById('voiceResult').textContent = ''; document.getElementById('voiceModal').classList.add('active'); recognition.start(); vibrate(20); }
+        function showVoiceModal() { if (!recognition) return alert('?�성 ?�식??지?�하지 ?�는 브라?��??�니??'); document.getElementById('voiceResult').textContent = ''; document.getElementById('voiceModal').classList.add('active'); recognition.start(); vibrate(20); }
         function stopRecognition() { if (recognition) try { recognition.stop(); } catch (e) { } }
 
         // Touchpad
