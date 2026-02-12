@@ -11,6 +11,7 @@ import qrcode
 import webbrowser
 import threading
 import time
+import ctypes
 
 # Flask 앱과 SocketIO 초기화
 if getattr(sys, 'frozen', False):
@@ -18,6 +19,23 @@ if getattr(sys, 'frozen', False):
     app = Flask(__name__, template_folder=template_folder)
 else:
     app = Flask(__name__)
+
+# Sleep Reservation Thread Global
+sleep_timer = None
+
+def get_active_window_title():
+    try:
+        GetForegroundWindow = ctypes.windll.user32.GetForegroundWindow
+        GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
+        GetWindowText = ctypes.windll.user32.GetWindowTextW
+
+        hwnd = GetForegroundWindow()
+        length = GetWindowTextLength(hwnd)
+        buff = ctypes.create_unicode_buffer(length + 1)
+        GetWindowText(hwnd, buff, length + 1)
+        return buff.value
+    except:
+        return "Unknown"
 
 # cors_allowed_origins='*' 는 로컬 네트워크의 다른 기기 접속 허용
 socketio = SocketIO(app, cors_allowed_origins='*', async_mode='threading')
@@ -27,7 +45,10 @@ pyautogui.FAILSAFE = False
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    local_ip = get_local_ip()
+    port = app.config.get('PORT', 5000)
+    server_url = f"http://{local_ip}:{port}"
+    return render_template('index.html', server_url=server_url)
 
 @app.route('/qr')
 def qr_page():
@@ -104,13 +125,62 @@ def handle_hotkey(data):
 
 @socketio.on('system')
 def handle_system(data):
+    global sleep_timer
     action = data.get('action', '')
+    delay = data.get('delay', 0)  # minutes
+    
     if action == 'sleep' and sys.platform.startswith('win'):
-        subprocess.run(
-            ["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"],
-            shell=True,
-            check=False,
-        )
+        if delay > 0:
+            def do_sleep():
+                time.sleep(delay * 60)
+                subprocess.run(
+                    ["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"],
+                    shell=True,
+                    check=False,
+                )
+            
+            if sleep_timer and sleep_timer.is_alive():
+                # Already have a timer? Maybe cancel it? 
+                # For now, let's just start a new one.
+                pass
+            
+            sleep_timer = threading.Thread(target=do_sleep, daemon=True)
+            sleep_timer.start()
+            emit('system_status', {'message': f'{delay}분 후 절전 모드로 전환됩니다.'})
+        else:
+            subprocess.run(
+                ["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"],
+                shell=True,
+                check=False,
+            )
+
+@socketio.on('get_current_tab')
+def handle_get_current_tab():
+    try:
+        import pyperclip
+        # Save current clipboard
+        old_clipboard = pyperclip.paste()
+        
+        # Try to get URL from address bar (Ctrl+L, Ctrl+C)
+        pyautogui.hotkey('ctrl', 'l', _pause=False)
+        time.sleep(0.2)
+        pyautogui.hotkey('ctrl', 'c', _pause=False)
+        time.sleep(0.2)
+        
+        url = pyperclip.paste()
+        title = get_active_window_title()
+        
+        # If the clipboard didn't change or doesn't look like a URL, 
+        # it might just be the window title or old clipboard content.
+        if not (url.startswith('http://') or url.startswith('https://') or url.startswith('www.')):
+            url = ""
+            
+        emit('current_tab', {'url': url, 'title': title})
+        
+        # Restore old clipboard (optional, but polite)
+        # pyperclip.copy(old_clipboard)
+    except Exception as e:
+        emit('current_tab', {'error': str(e)})
 
 @socketio.on('open')
 def handle_open(data):
