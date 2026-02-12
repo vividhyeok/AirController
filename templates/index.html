@@ -151,7 +151,7 @@
 
         .scroll-strip {
             position: absolute; top: 10px; bottom: 10px; right: 10px;
-            width: 40px;
+            width: 55px;
             background: rgba(255,255,255,0.03);
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.05);
@@ -407,14 +407,14 @@
                     <div class="card-btn" onclick="emitKey('volumemute')"><span class="card-icon">🔇</span><span class="card-label">음소거</span></div>
                     <div class="card-btn" onclick="emitKey('volumeup')"><span class="card-icon">🔊</span><span class="card-label">볼륨 +</span></div>
                     <div class="card-btn" onclick="emitKey('mediaprevtrack')"><span class="card-icon">⏮</span><span class="card-label">이전 곡</span></div>
-                    <div class="card-btn" onclick="emitKey('space')"><span class="card-icon">⏏</span><span class="card-label">스페이스</span></div>
+                    <div class="card-btn" onclick="emitKey('f')"><span class="card-icon">🖥</span><span class="card-label">전체화면</span></div>
                     <div class="card-btn" onclick="emitKey('medianexttrack')"><span class="card-icon">⏭</span><span class="card-label">다음 곡</span></div>
                 </div>
 
                 <h2>Navigation</h2>
                 <div class="control-grid">
                     <div class="card-btn" onclick="emitKey('f5')"><span class="card-label">새로고침</span></div>
-                    <div class="card-btn" onclick="emitKey('f')"><span class="card-label">전체화면</span></div>
+                    <div class="card-btn" onclick="emitKey('space')"><span class="card-label">스페이스</span></div>
                     <div class="card-btn" onclick="emitHotkey(['alt','left'])"><span class="card-label">뒤로가기</span></div>
                     <div class="card-btn" onclick="emitHotkey(['alt','right'])"><span class="card-label">앞으로가기</span></div>
                     <div class="card-btn" onclick="emitHotkey(['ctrl','t'])"><span class="card-label">새 탭</span></div>
@@ -453,8 +453,8 @@
                     <input type="range" id="mouseSens" min="1.0" max="5.0" step="0.5" value="2.5">
                 </div>
                 <div class="range-wrap" style="margin-bottom: 20px;">
-                    <div class="range-header"><span>스크롤 감도</span><span id="scrollVal">15</span></div>
-                    <input type="range" id="scrollSens" min="5" max="50" step="5" value="15">
+                    <div class="range-header"><span>스크롤 감도</span><span id="scrollVal">3</span></div>
+                    <input type="range" id="scrollSens" min="1" max="5" step="0.5" value="3">
                 </div>
             </div>
 
@@ -546,7 +546,7 @@
 
         // === State ===
         let mouseSensitivity = 2.5;
-        let scrollSensitivity = 15;
+        let scrollSensitivity = 3;
         let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         let recentHistory = JSON.parse(localStorage.getItem('recentHistory') || '[]');
 
@@ -557,10 +557,16 @@
             document.getElementById('mouseVal').textContent = mouseSensitivity;
         }
         if (localStorage.getItem('scrollSens')) {
-            scrollSensitivity = parseInt(localStorage.getItem('scrollSens'));
-            document.getElementById('scrollSens').value = scrollSensitivity;
-            document.getElementById('scrollVal').textContent = scrollSensitivity;
+            var savedScroll = parseFloat(localStorage.getItem('scrollSens'));
+            // New range is 1~5. If saved value is out of range (e.g. old default 15), reset it.
+            if (savedScroll >= 1 && savedScroll <= 5) {
+                scrollSensitivity = savedScroll;
+            } else {
+                localStorage.removeItem('scrollSens'); // Reset invalid legacy value
+            }
         }
+        document.getElementById('scrollSens').value = scrollSensitivity;
+        document.getElementById('scrollVal').textContent = scrollSensitivity;
 
         renderAppsLists();
 
@@ -571,7 +577,7 @@
             localStorage.setItem('mouseSens', mouseSensitivity);
         });
         document.getElementById('scrollSens').addEventListener('input', (e) => {
-            scrollSensitivity = parseInt(e.target.value);
+            scrollSensitivity = parseFloat(e.target.value);
             document.getElementById('scrollVal').textContent = scrollSensitivity;
             localStorage.setItem('scrollSens', scrollSensitivity);
         });
@@ -681,7 +687,14 @@
 
         // === Socket Emitters ===
         function emitClick(btn) { socket.emit('click', { btn: btn }); vibrate(30); }
-        function emitKey(key) { socket.emit('key', { key: key }); vibrate(20); }
+
+        var _keyDebounce = {};
+        function emitKey(key) {
+            var now = Date.now();
+            if (_keyDebounce[key] && now - _keyDebounce[key] < 300) return;
+            _keyDebounce[key] = now;
+            socket.emit('key', { key: key }); vibrate(20);
+        }
         function emitHotkey(keys) { socket.emit('hotkey', { keys: keys }); vibrate(25); }
 
         function reserveSleep() {
@@ -771,13 +784,22 @@
                 if (!prev) continue;
                 var rect = touchpad.getBoundingClientRect();
                 var relX = touch.clientX - rect.left;
-                var isScroll = relX > rect.width - 60;
+                var isScroll = relX > rect.width - 75;
                 var dx = (touch.clientX - prev.x) * mouseSensitivity;
                 var dy = (touch.clientY - prev.y) * mouseSensitivity;
 
                 if (isScroll) {
-                    var scrollDy = -(touch.clientY - prev.y) * 0.1 * scrollSensitivity;
-                    if (Math.abs(scrollDy) > 0.5) socket.emit('scroll', { dy: scrollDy });
+                    if (!prev.scrollAccum) prev.scrollAccum = 0;
+                    prev.scrollAccum += (touch.clientY - prev.y);
+                    var threshold = 30 / scrollSensitivity;
+                    if (Math.abs(prev.scrollAccum) >= threshold) {
+                        var steps = Math.floor(Math.abs(prev.scrollAccum) / threshold);
+                        var dir = prev.scrollAccum > 0 ? 1 : -1;
+                        for (var s = 0; s < steps; s++) {
+                            socket.emit('scroll', { dy: dir * 3 });
+                        }
+                        prev.scrollAccum -= dir * steps * threshold;
+                    }
                 } else {
                     socket.emit('move', { dx: dx, dy: dy });
                 }
@@ -791,7 +813,7 @@
                 var prev = touchData[touch.identifier];
                 if (prev && Date.now() - prev.time < 200) {
                     var rect = touchpad.getBoundingClientRect();
-                    if (touch.clientX - rect.left <= rect.width - 60) {
+                    if (touch.clientX - rect.left <= rect.width - 75) {
                         emitClick('left');
                     }
                 }
