@@ -270,15 +270,41 @@ func getActiveWindowTitle() string {
 // ─── Network ────────────────────────────────────────────────────
 
 func getLocalIP() string {
-	addrs, err := net.InterfaceAddrs()
+	// 1차: 실제 라우팅 가능한 IP를 UDP 다이얼로 확인
+	if conn, err := net.DialTimeout("udp4", "8.8.8.8:80", 2*time.Second); err == nil {
+		defer conn.Close()
+		if addr, ok := conn.LocalAddr().(*net.UDPAddr); ok {
+			return addr.IP.String()
+		}
+	}
+
+	// 2차: 네트워크 인터페이스 순회 (169.254.x.x 링크로컬 제외)
+	ifaces, err := net.Interfaces()
 	if err != nil {
 		return "127.0.0.1"
 	}
-	for _, addr := range addrs {
-		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ip4 := ipnet.IP.To4(); ip4 != nil {
-				return ip4.String()
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			ipnet, ok := addr.(*net.IPNet)
+			if !ok {
+				continue
 			}
+			ip4 := ipnet.IP.To4()
+			if ip4 == nil {
+				continue
+			}
+			// 169.254.x.x (APIPA/링크로컬) 제외
+			if ip4[0] == 169 && ip4[1] == 254 {
+				continue
+			}
+			return ip4.String()
 		}
 	}
 	return "127.0.0.1"
