@@ -1,18 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Air Controller Pro</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
-        rel="stylesheet">
+    <title>Air Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0c0c0c;
@@ -60,6 +55,7 @@
             flex-direction: column;
             width: 100%;
             max-width: 500px;
+            margin: 0 auto;
             position: relative;
             background: var(--bg-color);
             overflow-x: hidden;
@@ -79,7 +75,6 @@
         .app-title {
             font-size: 20px;
             font-weight: 700;
-            color: #fff;
             letter-spacing: -0.5px;
             background: linear-gradient(135deg, #fff 30%, var(--primary-color));
             -webkit-background-clip: text;
@@ -99,13 +94,11 @@
             font-weight: 500;
             color: var(--text-secondary);
             transition: all 0.3s ease;
-            position: relative;
             z-index: 101;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             border-radius: 50%;
             background-color: #ff7675;
             box-shadow: 0 0 10px rgba(255, 118, 117, 0.5);
@@ -117,19 +110,12 @@
         }
 
         /* Panels */
-        .content {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
+        .content { flex: 1; position: relative; overflow: hidden; }
 
         .panel {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            opacity: 0;
-            pointer-events: none;
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none;
             transform: translateY(10px);
             transition: var(--transition);
             padding: 0 20px 20px;
@@ -138,9 +124,7 @@
         }
 
         .panel.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
+            opacity: 1; pointer-events: auto; transform: translateY(0);
         }
 
         /* Touchpad */
@@ -158,83 +142,59 @@
         }
 
         .touch-pattern {
-            position: absolute;
-            inset: 0;
-            opacity: 0.05;
+            position: absolute; inset: 0; opacity: 0.05;
             background-image:
-                linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+                linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px);
             background-size: 40px 40px;
         }
 
         .scroll-strip {
-            position: absolute;
-            top: 10px;
-            bottom: 10px;
-            right: 10px;
+            position: absolute; top: 10px; bottom: 10px; right: 10px;
             width: 40px;
-            /* ?Ä???ïÏû• */
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255,255,255,0.03);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.1);
             font-size: 10px;
             writing-mode: vertical-rl;
             text-orientation: mixed;
             pointer-events: none;
-            /* ?∞Ïπò ?¥Î≤§?∏Îäî touchpad-container?êÏÑú Ï≤òÎ¶¨ */
         }
 
-        .scroll-strip::after {
-            content: "SCROLL AREA";
-            letter-spacing: 2px;
-        }
+        .scroll-strip::after { content: "SCROLL"; letter-spacing: 2px; }
 
         .touch-hint {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
+            position: absolute; bottom: 30px; left: 50%;
             transform: translateX(-50%);
-            color: var(--text-secondary);
-            font-size: 12px;
-            text-align: center;
-            opacity: 0.5;
-            white-space: nowrap;
+            color: var(--text-secondary); font-size: 12px;
+            text-align: center; opacity: 0.5; white-space: nowrap;
         }
 
         .mouse-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            height: 70px;
-            margin-bottom: 10px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 16px; height: 70px; margin-bottom: 10px;
         }
 
-        /* Buttons */
         .btn-mouse {
             background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             color: var(--text-primary);
-            font-size: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 15px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(var(--glass-blur));
             transition: var(--transition);
         }
 
         .btn-mouse:active {
             transform: scale(0.96);
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
         }
 
-        .control-grid,
-        .grid-shortcuts {
+        /* Grid */
+        .control-grid, .grid-shortcuts {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
             gap: 10px;
@@ -244,10 +204,8 @@
             background: var(--surface-variant);
             border-radius: var(--radius-md);
             padding: 18px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             gap: 8px;
             color: var(--text-primary);
             border: 1px solid var(--border-color);
@@ -256,150 +214,79 @@
         }
 
         .card-btn:active {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             transform: scale(0.95);
             border-color: var(--primary-color);
         }
 
-        .card-icon { font-size: 24px; margin-bottom: 4px; }
+        .card-icon { font-size: 24px; }
         .card-label { font-size: 12px; font-weight: 500; opacity: 0.9; text-align: center; word-break: break-all; }
 
-        .card-btn.small {
-            padding: 8px;
-            position: relative;
-        }
+        .card-btn.small { padding: 10px; position: relative; }
 
         .card-btn .btn-delete {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            z-index: 2;
+            position: absolute; top: -5px; right: -5px;
+            width: 20px; height: 20px;
+            background: #ef4444; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 2;
         }
 
         .card-btn .btn-fav {
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            width: 20px;
-            height: 20px;
-            background: #f59e0b;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute; top: -5px; left: -5px;
+            width: 20px; height: 20px;
+            background: #f59e0b; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
             font-size: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            z-index: 2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 2;
         }
 
-        .card-label {
-            font-size: 12px;
-            font-weight: 500;
-            text-align: center;
-            opacity: 0.9;
-        }
-
-        /* Section Header with Toggle */
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 24px 0 12px 4px;
-            cursor: pointer;
-        }
-
-        .section-header h2 {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--text-secondary);
-            margin: 0;
-            font-weight: 700;
-        }
-
-        .toggle-icon {
-            font-size: 12px;
-            transition: transform 0.3s;
-        }
-
-        .collapsed .toggle-icon {
-            transform: rotate(-90deg);
-        }
-
-        .collapsed+.collapsible-content {
-            display: none;
-        }
-
-        /* Inputs */
-        .text-input-row {
-            background: var(--surface-color);
+        /* Input */
+        .input-wrapper {
+            background: var(--surface-variant);
             border-radius: var(--radius-md);
             padding: 4px 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
             border: 1px solid var(--border-color);
-            width: 100%;
-            box-sizing: border-box;
+            width: 100%; box-sizing: border-box;
         }
 
         .input-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-            width: 100%;
+            display: flex; flex-direction: column; gap: 12px;
+            margin-bottom: 20px; width: 100%;
         }
 
         input[type="text"] {
-            flex: 1;
-            min-width: 0;
-            background: transparent;
-            border: none;
-            color: white;
-            padding: 12px 4px;
-            font-size: 16px;
-            outline: none;
-            min-width: 0;
+            flex: 1; min-width: 0;
+            background: transparent; border: none;
+            color: white; padding: 12px 4px; font-size: 16px; outline: none;
         }
 
-        .btn-send-full {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            color: #fff;
-            border: none;
+        .input-hint {
+            font-size: 11px; color: var(--text-secondary); opacity: 0.6; padding-left: 4px;
+        }
+
+        .btn-send {
+            background: var(--primary-color);
+            color: #111; border: none;
             border-radius: var(--radius-sm);
-            padding: 10px 16px;
-            font-weight: 600;
-            font-size: 14px;
-            white-space: nowrap;
-            flex-shrink: 0;
+            padding: 10px 16px; font-weight: 600; font-size: 14px;
+            white-space: nowrap; flex-shrink: 0;
         }
 
-        .btn-action-dark {
+        .btn-icon {
             background: var(--surface-variant);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            font-weight: 600;
+            border-radius: var(--radius-sm);
+            padding: 10px 16px; font-weight: 600; font-size: 14px;
+            text-align: center;
         }
 
-        /* Nav Tab Bar */
+        /* Tab Bar */
         .tab-bar {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: grid; grid-template-columns: repeat(3, 1fr);
             padding: 10px 10px calc(var(--safe-bottom) + 10px);
             background: rgba(18, 18, 18, 0.95);
             backdrop-filter: blur(20px);
@@ -408,260 +295,86 @@
         }
 
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            padding: 10px;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 6px; padding: 10px;
             color: var(--text-secondary);
-            font-size: 11px;
-            font-weight: 500;
-            transition: var(--transition);
-            position: relative;
+            font-size: 11px; font-weight: 500;
+            transition: var(--transition); position: relative;
         }
 
-        .nav-item.active {
-            color: var(--primary-color);
-        }
+        .nav-item.active { color: var(--primary-color); }
 
         .nav-item.active::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 3px;
+            content: ''; position: absolute; top: 0;
+            left: 50%; transform: translateX(-50%);
+            width: 30px; height: 3px;
             background: var(--primary-color);
             border-radius: 0 0 4px 4px;
             box-shadow: 0 0 10px var(--primary-color);
         }
 
         .nav-icon {
-            width: 22px;
-            height: 22px;
+            width: 22px; height: 22px;
             background-color: currentColor;
-            mask-size: contain;
-            mask-repeat: no-repeat;
-            mask-position: center;
-            -webkit-mask-size: contain;
-            -webkit-mask-repeat: no-repeat;
-            -webkit-mask-position: center;
+            mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+            -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
         }
 
-        /* Site List */
-        .site-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .site-item {
-            display: flex;
-            align-items: center;
-            background: var(--surface-variant);
-            border-radius: var(--radius-md);
-            padding: 12px 16px;
-            gap: 12px;
-            border: 1px solid var(--border-color);
-            transition: var(--transition);
-        }
-
-        .site-icon-box {
-            width: 36px;
-            height: 36px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .site-info {
-            flex: 1;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .site-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: block;
-        }
-
-        .site-url {
-            font-size: 11px;
-            color: var(--text-secondary);
-            opacity: 0.6;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: block;
-            margin-top: 2px;
-        }
-
-        .site-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-site-action {
-            background: transparent;
-            border: none;
-            padding: 6px;
-            font-size: 16px;
-            border-radius: 8px;
-            transition: 0.2s;
-        }
-
-        .btn-site-action:active {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(0.9);
-        }
-
-        /* Modals */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(12px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #1a1a1a;
-            width: 100%;
-            max-width: 400px;
-            border-radius: var(--radius-lg);
-            padding: 28px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .choice-btn {
-            width: 100%;
-            padding: 16px;
-            margin-bottom: 12px;
-            background: var(--surface-variant);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: #fff;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .choice-btn:active {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .choice-icon {
-            font-size: 20px;
-        }
-
-        .choice-text div:first-child {
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .choice-text div:last-child {
-            font-size: 11px;
-            opacity: 0.5;
-            margin-top: 2px;
-        }
-
-        /* Range Wrap */
+        /* Range */
         .range-wrap {
             background: var(--surface-color);
-            padding: 18px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            margin-bottom: 10px;
+            padding: 18px; border-radius: var(--radius-md);
+            border: 1px solid var(--border-color); margin-bottom: 10px;
         }
 
         .range-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 13px;
-            font-weight: 600;
+            display: flex; justify-content: space-between;
+            margin-bottom: 12px; font-size: 13px; font-weight: 600;
         }
 
         input[type=range] {
-            width: 100%;
-            height: 6px;
-            background: #2d3436;
-            border-radius: 10px;
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
+            width: 100%; height: 6px; background: #2d3436;
+            border-radius: 10px; outline: none;
+            -webkit-appearance: none; appearance: none;
         }
 
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--primary-glow);
-            cursor: pointer;
+            width: 22px; height: 22px;
+            background: var(--primary-color); border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary-glow); cursor: pointer;
         }
 
         /* Icons */
         .icon-touch {
-            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
-            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.5 2 7.2 3.2 5.8 5.3L12 14L18.2 5.3C16.8 3.2 14.5 2 12 2ZM4.9 6.7C3.1 8 2 10.1 2 12.5C2 17.5 5.8 21.6 10.8 22H13.2C18.2 21.6 22 17.5 22 12.5C22 10.1 20.9 8 19.1 6.7L12 16.5L4.9 6.7Z" fill="black"/></svg>');
         }
 
         .icon-input {
-            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
-            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 6V18H20V6H4ZM2 6C2 4.9 2.9 4 4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6ZM6 8H8V10H6V8ZM6 12H8V14H6V12ZM10 8H14V10H10V8ZM10 12H14V14H10V12ZM16 8H18V10H16V8ZM16 12H18V14H16V12Z" fill="black"/></svg>');
         }
 
         .icon-apps {
-            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
-            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
+            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
+            mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14ZM14 14H20V20H14V14Z" fill="black"/></svg>');
         }
 
-        /* Utility */
-        .mt-auto {
-            margin-top: auto;
-        }
-
-        .pt-10 {
-            padding-top: 10px;
+        h2 {
+            font-size: 13px; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--text-secondary);
+            margin: 20px 0 12px; font-weight: 700;
         }
     </style>
 </head>
-
 <body>
     <div class="app-container">
         <!-- Top Bar -->
         <div class="topbar">
             <div style="display: flex; flex-direction: column;">
                 <div class="app-title">Air Mouse</div>
-                <div style="font-size: 10px; color: var(--text-secondary); font-family: monospace;">{{ server_url }}</div>
+                <div style="font-size: 10px; color: var(--text-secondary); font-family: monospace;">{{.ServerURL}}</div>
             </div>
             <div class="status-badge" id="statusBadge">
                 <div class="status-dot"></div>
@@ -670,854 +383,421 @@
         </div>
 
         <div class="content">
-            <!-- Panel: Touchpad -->
+            <!-- 1. Touch Panel -->
             <div class="panel active" id="panel-touch">
                 <div class="touchpad-container" id="touchpad">
                     <div class="touch-pattern"></div>
                     <div class="scroll-strip"></div>
-                    <div class="touch-hint">?¥Í≥≥???∞Ïπò?òÏó¨ ÎßàÏö∞??Ï°∞Ïûë<br>?§Î•∏Ï™??åÏÉâ Î∞îÎ? Î∞Ä???§ÌÅ¨Î°?/div>
+                    <div class="touch-hint">ÌÑ∞ÏπòÌïòÏó¨ ÎßàÏö∞Ïä§ Ï°∞Ïûë ¬∑ Ïò§Î•∏Ï™Ω Î∞îÎ•º Î∞ÄÏñ¥ Ïä§ÌÅ¨Î°§</div>
                 </div>
                 <div class="mouse-controls">
-                    <div class="btn-mouse" onclick="emitClick('left')">?ºÏ™Ω ?¥Î¶≠</div>
-                    <div class="btn-mouse" onclick="emitClick('right')">?§Î•∏Ï™??¥Î¶≠</div>
+                    <div class="btn-mouse" onclick="emitClick('left')">Ï¢åÌÅ¥Î¶≠</div>
+                    <div class="btn-mouse" onclick="emitClick('right')">Ïö∞ÌÅ¥Î¶≠</div>
                 </div>
             </div>
 
-            <!-- Panel: Inputs & Controls -->
+            <!-- 2. Input Panel -->
             <div class="panel" id="panel-input">
                 <h2>Media</h2>
                 <div class="control-grid">
-                    <div class="card-btn" data-ai-id="rewd" onclick="emitKey('left')"><span
-                            class="card-icon">??/span><span class="card-label">-5s</span></div>
-                    <div class="card-btn" data-ai-id="playpause" onclick="emitKey('playpause')"><span
-                            class="card-icon">??/span><span class="card-label">?¨ÏÉù/?ºÏãú?ïÏ?</span></div>
-                    <div class="card-btn" data-ai-id="fwd" onclick="emitKey('right')"><span
-                            class="card-icon">??/span><span class="card-label">+5s</span></div>
-                    <div class="card-btn" data-ai-id="volumedown" onclick="emitKey('volumedown')"><span
-                            class="card-icon">?îâ</span><span class="card-label">Î≥ºÎ•® -</span></div>
-                    <div class="card-btn" data-ai-id="volumemute" onclick="emitKey('volumemute')"><span
-                            class="card-icon">?îá</span><span class="card-label">?åÏÜåÍ±?/span></div>
-                    <div class="card-btn" data-ai-id="volumeup" onclick="emitKey('volumeup')"><span
-                            class="card-icon">?îä</span><span class="card-label">Î≥ºÎ•® +</span></div>
-                    <div class="card-btn" data-ai-id="prev" onclick="emitKey('prevtrack')"><span
-                            class="card-icon">??/span><span class="card-label">?¥Ï†Ñ Í≥?/span></div>
-                    <div class="card-btn" data-ai-id="space" onclick="emitKey('space')"><span
-                            class="card-icon">??/span><span class="card-label">?§Ìéò?¥Ïä§</span></div>
-                    <div class="card-btn" data-ai-id="next" onclick="emitKey('nexttrack')"><span
-                            class="card-icon">??/span><span class="card-label">?§Ïùå Í≥?/span></div>
+                    <div class="card-btn" onclick="emitKey('left')"><span class="card-icon">‚è™</span><span class="card-label">-5s</span></div>
+                    <div class="card-btn" onclick="emitKey('mediaplaypause')"><span class="card-icon">‚èØ</span><span class="card-label">Ïû¨ÏÉù/ÏùºÏãúÏ†ïÏßÄ</span></div>
+                    <div class="card-btn" onclick="emitKey('right')"><span class="card-icon">‚è©</span><span class="card-label">+5s</span></div>
+                    <div class="card-btn" onclick="emitKey('volumedown')"><span class="card-icon">üîâ</span><span class="card-label">Î≥ºÎ•® -</span></div>
+                    <div class="card-btn" onclick="emitKey('volumemute')"><span class="card-icon">üîá</span><span class="card-label">ÏùåÏÜåÍ±∞</span></div>
+                    <div class="card-btn" onclick="emitKey('volumeup')"><span class="card-icon">üîä</span><span class="card-label">Î≥ºÎ•® +</span></div>
+                    <div class="card-btn" onclick="emitKey('mediaprevtrack')"><span class="card-icon">‚èÆ</span><span class="card-label">Ïù¥Ï†Ñ Í≥°</span></div>
+                    <div class="card-btn" onclick="emitKey('space')"><span class="card-icon">‚èè</span><span class="card-label">Ïä§ÌéòÏù¥Ïä§</span></div>
+                    <div class="card-btn" onclick="emitKey('medianexttrack')"><span class="card-icon">‚è≠</span><span class="card-label">Îã§Ïùå Í≥°</span></div>
                 </div>
 
-                <div class="section-header">
-                    <h2>Î∏åÎùº?∞Ï? ?úÏñ¥</h2>
-                </div>
+                <h2>Navigation</h2>
                 <div class="control-grid">
-                    <div class="card-btn" data-ai-id="refresh" onclick="emitKey('f5')"><span
-                            class="card-label">?àÎ°úÍ≥†Ïπ®</span></div>
-                    <div class="card-btn" data-ai-id="fullscreen" onclick="emitKey('f')"><span
-                            class="card-label">?ÑÏ≤¥?îÎ©¥</span></div>
-                    <div class="card-btn" data-ai-id="back" onclick="emitHotkey(['alt', 'left'])"><span
-                            class="card-label">?§Î°úÍ∞ÄÍ∏?/span>
-                    </div>
-                    <div class="card-btn" data-ai-id="forward" onclick="emitHotkey(['alt', 'right'])"><span
-                            class="card-label">?ûÏúºÎ°úÍ?Í∏?/span>
-                    </div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 't'])"><span class="card-label">????/span></div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'w'])"><span class="card-label">???´Í∏∞</span></div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'shift', 'tab'])"><span class="card-label">?¥Ï†Ñ
-                            ??/span></div>
-                    <div class="card-btn" onclick="emitHotkey(['ctrl', 'tab'])"><span class="card-label">?§Ïùå ??/span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('browserhome')"><span class="card-label">??/span></div>
+                    <div class="card-btn" onclick="emitKey('f5')"><span class="card-label">ÏÉàÎ°úÍ≥†Ïπ®</span></div>
+                    <div class="card-btn" onclick="emitKey('f')"><span class="card-label">Ï†ÑÏ≤¥ÌôîÎ©¥</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['alt','left'])"><span class="card-label">Îí§Î°úÍ∞ÄÍ∏∞</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['alt','right'])"><span class="card-label">ÏïûÏúºÎ°úÍ∞ÄÍ∏∞</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl','t'])"><span class="card-label">ÏÉà ÌÉ≠</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl','w'])"><span class="card-label">ÌÉ≠ Îã´Í∏∞</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl','shift','tab'])"><span class="card-label">Ïù¥Ï†Ñ ÌÉ≠</span></div>
+                    <div class="card-btn" onclick="emitHotkey(['ctrl','tab'])"><span class="card-label">Îã§Ïùå ÌÉ≠</span></div>
+                    <div class="card-btn" onclick="emitKey('browserhome')"><span class="card-label">Ìôà</span></div>
                 </div>
 
-                <h2 style="margin-top: 24px;">Text Input</h2>
+                <h2>Text Input</h2>
                 <div class="input-stack">
                     <div class="input-wrapper">
-                        <input type="text" id="textInput" placeholder="Enter text...">
+                        <input type="text" id="textInput" placeholder="ÌÖçÏä§Ìä∏Î•º ÏûÖÎ†•ÌïòÏÑ∏Ïöî...">
                         <button class="btn-send" onclick="sendText()">Send</button>
                     </div>
-                    <div class="input-hint">?çÏä§?∏Î? ?ÖÎ†•?òÍ≥† SendÎ•??ÑÎ•¥Î©?PC???ÖÎ†•(Î∂ôÏó¨?£Í∏∞)?©Îãà??</div>
+                    <div class="input-hint">ÌÖçÏä§Ìä∏Î•º ÏûÖÎ†•ÌïòÍ≥† SendÎ•º ÎàÑÎ•¥Î©¥ PCÏóê ÏûÖÎ†•(Î∂ôÏó¨ÎÑ£Í∏∞)Îê©ÎãàÎã§</div>
                 </div>
-                
+
                 <h2>Controls</h2>
                 <div class="grid-shortcuts" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
-                    <div class="card-btn" onclick="emitKey('enter')">
-                        <span class="card-label">Enter</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('backspace')">
-                        <span class="card-label">Backspace</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('esc')">
-                        <span class="card-label">ESC</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('space')">
-                        <span class="card-label">Space</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('tab')">
-                        <span class="card-label">Tab</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('win')">
-                        <span class="card-label">Win</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('up')">
-                        <span class="card-label">Up</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('down')">
-                        <span class="card-label">Down</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('left')">
-                        <span class="card-label">Left</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('right')">
-                        <span class="card-label">Right</span>
-                    </div>
+                    <div class="card-btn" onclick="emitKey('enter')"><span class="card-label">Enter</span></div>
+                    <div class="card-btn" onclick="emitKey('backspace')"><span class="card-label">Backspace</span></div>
+                    <div class="card-btn" onclick="emitKey('esc')"><span class="card-label">ESC</span></div>
+                    <div class="card-btn" onclick="emitKey('space')"><span class="card-label">Space</span></div>
+                    <div class="card-btn" onclick="emitKey('tab')"><span class="card-label">Tab</span></div>
+                    <div class="card-btn" onclick="emitKey('win')"><span class="card-label">Win</span></div>
+                    <div class="card-btn" onclick="emitKey('up')"><span class="card-label">Up</span></div>
+                    <div class="card-btn" onclick="emitKey('down')"><span class="card-label">Down</span></div>
+                    <div class="card-btn" onclick="emitKey('left')"><span class="card-label">Left</span></div>
+                    <div class="card-btn" onclick="emitKey('right')"><span class="card-label">Right</span></div>
                 </div>
 
                 <h2>Sensitivity</h2>
                 <div class="range-wrap">
-                    <div class="range-header"><span>ÎßàÏö∞??Í∞êÎèÑ</span><span id="mouseVal">2.5</span></div>
+                    <div class="range-header"><span>ÎßàÏö∞Ïä§ Í∞êÎèÑ</span><span id="mouseVal">2.5</span></div>
                     <input type="range" id="mouseSens" min="1.0" max="5.0" step="0.5" value="2.5">
                 </div>
                 <div class="range-wrap" style="margin-bottom: 20px;">
-                    <div class="range-header">
-                        <span>Scroll Speed</span>
-                        <span id="scrollVal">15</span>
-                    </div>
+                    <div class="range-header"><span>Ïä§ÌÅ¨Î°§ Í∞êÎèÑ</span><span id="scrollVal">15</span></div>
                     <input type="range" id="scrollSens" min="5" max="50" step="5" value="15">
                 </div>
-
-                <button class="btn-action-dark" style="color:#ff7675; border-color: rgba(255,118,117,0.2);"
-                    onclick="showTimerModal()">?í§ PC ?àÏïΩ Ï¢ÖÎ£å ?§Ï†ï</button>
             </div>
 
-            <!-- Panel: Apps -->
+            <!-- 3. Apps Panel -->
             <div class="panel" id="panel-apps">
                 <h2>Favorites</h2>
-                <div id="favoritesList" class="grid-shortcuts" style="margin-bottom: 24px;">
-                    <!-- Dynamic favorites injected here -->
-                </div>
+                <div id="favoritesList" class="grid-shortcuts" style="margin-bottom: 24px;"></div>
 
                 <div class="input-wrapper" style="margin-bottom: 24px;">
-                    <input type="text" id="appUrlInput" placeholder="https://..." style="width: 100%;">
+                    <input type="text" id="appUrlInput" placeholder="https://...">
                     <button class="btn-send" onclick="openAppUrl()">Open</button>
                 </div>
 
                 <h2>Current Tab</h2>
                 <div class="grid-shortcuts" style="margin-bottom: 12px;">
-                    <div class="card-btn" onclick="requestCurrentTab()">
-                        <span class="card-label">Get Tab</span>
-                    </div>
+                    <div class="card-btn" onclick="requestCurrentTab()"><span class="card-label">Get Tab</span></div>
                 </div>
-                <div id="currentTabContainer" style="display: none; margin-bottom: 24px; padding: 15px; background: var(--surface-variant); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">Active Tab:</div>
-                    <div id="currentTabTitle" style="font-size: 14px; font-weight: 500; margin-bottom: 4px; word-break: break-all;"></div>
-                    <div id="currentTabUrl" style="font-size: 11px; color: var(--primary-color); margin-bottom: 12px; word-break: break-all; font-family: monospace;"></div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div id="currentTabContainer" style="display:none; margin-bottom:24px; padding:15px; background:var(--surface-variant); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+                    <div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px;">Active Tab:</div>
+                    <div id="currentTabTitle" style="font-size:14px; font-weight:500; margin-bottom:4px; word-break:break-all;"></div>
+                    <div id="currentTabUrl" style="font-size:11px; color:var(--primary-color); margin-bottom:12px; word-break:break-all; font-family:monospace;"></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                         <button class="btn-send" id="openTabBtn">Open Here</button>
-                        <button class="btn-icon" id="favTabBtn">‚≠?Add Fav</button>
+                        <button class="btn-icon" id="favTabBtn">‚≠ê Add Fav</button>
                     </div>
-                    <button class="btn-icon" style="width: 100%; margin-top: 8px;" onclick="document.getElementById('currentTabContainer').style.display='none'">Close</button>
+                    <button class="btn-icon" style="width:100%; margin-top:8px;" onclick="document.getElementById('currentTabContainer').style.display='none'">Close</button>
                 </div>
 
-                <div id="recent-section" style="display: none;">
+                <div id="recent-section" style="display:none;">
                     <h2>Recently Visited</h2>
-                    <div class="grid-shortcuts" id="recentList" style="margin-bottom: 24px;">
-                        <!-- Recent items will be injected here -->
-                    </div>
+                    <div class="grid-shortcuts" id="recentList" style="margin-bottom:24px;"></div>
                 </div>
 
                 <h2>Tools</h2>
-                <div class="grid-shortcuts" style="margin-bottom: 24px;">
-                    <div class="card-btn" onclick="openUrl('https://www.google.com')">
-                        <span class="card-label">Google</span>
-                    </div>
-                    <div class="card-btn" onclick="emitKey('browserhome')">
-                        <span class="card-label">Home</span>
-                    </div>
-                    <div class="card-btn" onclick="reserveSleep()">
-                        <span class="card-label">Sleep PC</span>
-                    </div>
+                <div class="grid-shortcuts" style="margin-bottom:24px;">
+                    <div class="card-btn" onclick="openUrl('https://www.google.com')"><span class="card-label">Google</span></div>
+                    <div class="card-btn" onclick="emitKey('browserhome')"><span class="card-label">Home</span></div>
+                    <div class="card-btn" onclick="reserveSleep()"><span class="card-label">Sleep PC</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Tab Bar -->
+        <!-- Tab Bar -->
         <div class="tab-bar">
             <div class="nav-item active" onclick="switchTab('touch', this)">
-                <div class="nav-icon icon-touch"></div>
-                <span>?∞Ïπò</span>
+                <div class="nav-icon icon-touch"></div><span>Touch</span>
             </div>
             <div class="nav-item" onclick="switchTab('input', this)">
-                <div class="nav-icon icon-input"></div>
-                <span>Ïª®Ìä∏Î°?/span>
+                <div class="nav-icon icon-input"></div><span>Input</span>
             </div>
             <div class="nav-item" onclick="switchTab('apps', this)">
-                <div class="nav-icon icon-apps"></div>
-                <span>??/ ?¨Ïù¥??/span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <!-- Timer Modal -->
-    <div class="modal-overlay" id="timerModal">
-        <div class="modal-content">
-            <div class="modal-title">PC ?àÏïΩ Ï¢ÖÎ£å</div>
-            <div class="preset-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(20)">20Î∂???/button>
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(40)">40Î∂???/button>
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(60)">1?úÍ∞Ñ ??/button>
-                <button class="btn-mouse" style="height:46px;" onclick="setTimer(120)">2?úÍ∞Ñ ??/button>
-            </div>
-            <div class="text-input-row">
-                <input type="text" id="manualMinutes" placeholder="?ÖÎ†• (?®ÏúÑ: Î∂?">
-                <button class="btn-mouse" style="padding:0 12px;" onclick="setManualTimer()">?àÏïΩ</button>
-            </div>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn-action-dark" style="flex:1" onclick="closeModals()">Ï∑®ÏÜå</button>
-                <button class="btn-action-dark" style="flex:1; color:#ff7675;" onclick="cancelShutdown()">?àÏïΩ Ï∑®ÏÜå</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Starring Choice Modal -->
-    <div class="modal-overlay" id="starChoiceModal">
-        <div class="modal-content">
-            <div class="modal-title">Ï¶êÍ≤®Ï∞æÍ∏∞ ?Ä??Î∞©Ïãù ?†ÌÉù</div>
-            <div id="choiceContainer"></div>
-            <button class="btn-action-dark" style="width:100%; margin-top:10px;" onclick="closeModals()">Ï∑®ÏÜå</button>
-        </div>
-    </div>
-
-    <!-- Favorite Edit Modal -->
-    <div class="modal-overlay" id="favEditModal">
-        <div class="modal-content">
-            <div class="modal-title">Ï¶êÍ≤®Ï∞æÍ∏∞ ?ïÎ≥¥ ?∏Ïßë</div>
-            <div class="text-input-row" style="margin-bottom:10px;">
-                <input type="text" id="favNameInput" placeholder="?¥Î¶Ñ (?? ?†ÌäúÎ∏?">
-            </div>
-            <div class="text-input-row" style="margin-bottom:15px;">
-                <input type="text" id="favIconInput" placeholder="?¥Î™®ÏßÄ ?êÎäî ?ÑÏù¥ÏΩ?(?? ?é¨)">
-            </div>
-            <div id="favUrlLabel" style="font-size:11px; color:#666; margin-bottom:20px; word-break:break-all;"></div>
-            <button class="btn-send-full" style="width:100%;" id="saveFavBtn">?Ä?•ÌïòÍ∏?/button>
-            <button class="btn-action-dark" style="width:100%; margin-top:10px;" onclick="closeModals()">Ï∑®ÏÜå</button>
-        </div>
-    </div>
-
-    <!-- Voice Modal -->
-    <div class="modal-overlay" id="voiceModal">
-        <div class="modal-content" style="text-align:center;">
-            <div class="modal-title">ÎßêÏ???Ï£ºÏÑ∏??..</div>
-            <div id="voiceResult"
-                style="font-size:18px; font-weight:600; min-height:1.5em; color:var(--primary-color); margin:20px 0;">
-            </div>
-            <button class="btn-action-dark" style="width:100%;" onclick="closeModals()">Ï§ëÎã®</button>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-title">AI Î∞????§Ï†ï</div>
-
-            <div class="section-header">
-                <h2>AI Î∂ÑÏÑù Í∏∞Îä• ?¨Ïö©</h2>
-            </div>
-            <label class="choice-btn" style="padding:12px; cursor:pointer;">
-                <input type="checkbox" id="aiEnabledToggle" onchange="toggleAiPower()" style="width:20px; height:20px;">
-                <div class="choice-text">
-                    <div>AI Î≤ÑÌäº ?êÎèô Îß§Ìïë ?úÏÑ±??/div>
-                    <div>Ï≤¥ÌÅ¨ ?¥Ï†ú ??Í¥Ä??Î≤ÑÌäº??ÎπÑÌôú?±Ìôî?©Îãà??</div>
-                </div>
-            </label>
-
-            <div id="aiConfigInputs" style="opacity:0.5; pointer-events:none; transition:0.3s;">
-                <div class="section-header">
-                    <h2>Î™®Îç∏ ?†ÌÉù</h2>
-                </div>
-                <div class="choice-btn" style="padding:10px; flex-direction:column; gap:8px;">
-                    <select id="aiModelSelect"
-                        style="width:100%; height:40px; background:var(--surface-color); color:#fff; border-radius:8px; border:1px solid var(--border-color); outline:none; padding:0 10px;">
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Ï∂îÏ≤ú/?Ä??</option>
-                        <option value="gpt-4o-mini">GPT-4o Mini</option>
-                        <option value="deepseek-chat">DeepSeek Chat</option>
-                    </select>
-                </div>
-
-                <div class="section-header">
-                    <h2>API ???ÖÎ†•</h2>
-                </div>
-                <div class="text-input-row" style="margin-bottom:8px;">
-                    <input type="password" id="key-google" placeholder="Google AI API Key">
-                </div>
-                <div class="text-input-row" style="margin-bottom:8px;">
-                    <input type="password" id="key-openai" placeholder="OpenAI API Key">
-                </div>
-                <div class="text-input-row" style="margin-bottom:15px;">
-                    <input type="password" id="key-deepseek" placeholder="DeepSeek API Key">
-                </div>
-
-                <div class="section-header">
-                    <h2>?¨Ïö©??Î∞?ÎπÑÏö© (KRW)</h2>
-                </div>
-                <div class="range-wrap" style="padding:12px; font-size:13px; font-weight:500;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                        <span>ÏµúÍ∑º Î∂ÑÏÑù ÎπÑÏö©</span><span id="lastCost" style="color:var(--primary-color);">??</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>?ÑÏ†Å ?©Í≥Ñ</span><span id="totalCost" style="color:var(--accent-color);">??</span>
-                    </div>
-                </div>
-            </div>
-
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn-action-dark" style="flex:1" onclick="closeModals()">?´Í∏∞</button>
-                <button class="btn-send-full" style="flex:1" onclick="saveAiSettings()">?§Ï†ï ?Ä??/button>
+                <div class="nav-icon icon-apps"></div><span>Apps</span>
             </div>
         </div>
     </div>
 
     <script>
-        const socket = io();
+        // === WebSocket Wrapper (Socket.IO Ìò∏Ìôò API) ===
+        class WS {
+            constructor() {
+                this.handlers = {};
+                this._connect();
+            }
+            _connect() {
+                const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                this.ws = new WebSocket(proto + '//' + location.host + '/ws');
+                this.ws.onopen = () => this._fire('connect');
+                this.ws.onclose = () => { this._fire('disconnect'); setTimeout(() => this._connect(), 2000); };
+                this.ws.onerror = () => {};
+                this.ws.onmessage = (e) => {
+                    try { const m = JSON.parse(e.data); this._fire(m.event, m.data); } catch(err) {}
+                };
+            }
+            on(event, fn) { (this.handlers[event] = this.handlers[event] || []).push(fn); }
+            _fire(event, data) { (this.handlers[event] || []).forEach(fn => fn(data)); }
+            emit(event, data) {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify({ event: event, data: data }));
+                }
+            }
+        }
+        const socket = new WS();
+
+        // === Connection Status ===
         const statusBadge = document.getElementById('statusBadge');
         const statusText = document.getElementById('statusText');
+        socket.on('connect', () => { statusBadge.classList.add('connected'); statusText.textContent = 'Connected'; });
+        socket.on('disconnect', () => { statusBadge.classList.remove('connected'); statusText.textContent = 'Disconnected'; });
 
-        socket.on('connect', () => { statusBadge.classList.add('connected'); statusText.textContent = '?∞Í≤∞??; socket.emit('get_sites'); });
-        socket.on('disconnect', () => { statusBadge.classList.remove('connected'); statusText.textContent = '?∞Í≤∞ ?äÍ?'; });
-        socket.on('sync_sites', (data) => { renderSites(data); });
-        socket.on('system_status', (data) => { alert(data.msg); });
-        socket.on('open_on_mobile', (data) => { if (confirm('PC?êÏÑú Í∞Ä?∏Ïò® ?òÏù¥ÏßÄÎ•??¥Íπå??\n' + data.url)) window.open(data.url, '_blank'); });
-        socket.on('domain_info', (data) => { showStarChoice(data); });
-
-        socket.on('ai_config_status', (config) => {
-            updateAiConfigUI(config);
-        });
-
-        socket.on('ai_mapping_result', (data) => {
-            applyAiMapping(data);
-        });
-
-        // === ?ÅÌÉú Í¥ÄÎ¶?Î≥Ä??===
-        let mouseSensitivity = 1.5;
+        // === State ===
+        let mouseSensitivity = 2.5;
         let scrollSensitivity = 15;
-        
         let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         let recentHistory = JSON.parse(localStorage.getItem('recentHistory') || '[]');
 
-        // Settings
-        let mouseSens = localStorage.getItem('mouseSens') || 2.5, scrollSens = localStorage.getItem('scrollSens') || 15;
-        document.getElementById('mouseSens').value = mouseSens; document.getElementById('mouseVal').textContent = mouseSens;
-        document.getElementById('scrollSens').value = scrollSens; document.getElementById('scrollVal').textContent = scrollSens;
-        document.getElementById('mouseSens').oninput = (e) => { mouseSens = e.target.value; document.getElementById('mouseVal').textContent = mouseSens; localStorage.setItem('mouseSens', mouseSens); };
-        document.getElementById('scrollSens').oninput = (e) => { scrollSens = e.target.value; document.getElementById('scrollVal').textContent = scrollSens; localStorage.setItem('scrollSens', scrollSens); };
-
-        // Tabs
-        function switchTab(name) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(`panel-${name}`).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            if (event && event.currentTarget) event.currentTarget.classList.add('active');
-            vibrate(10);
+        // Load saved settings
+        if (localStorage.getItem('mouseSens')) {
+            mouseSensitivity = parseFloat(localStorage.getItem('mouseSens'));
+            document.getElementById('mouseSens').value = mouseSensitivity;
+            document.getElementById('mouseVal').textContent = mouseSensitivity;
+        }
+        if (localStorage.getItem('scrollSens')) {
+            scrollSensitivity = parseInt(localStorage.getItem('scrollSens'));
+            document.getElementById('scrollSens').value = scrollSensitivity;
+            document.getElementById('scrollVal').textContent = scrollSensitivity;
         }
 
-        // Ï¥àÍ∏∞ ??Î¶¨Ïä§???åÎçîÎß?
         renderAppsLists();
 
-        // Í∞êÎèÑ Ï°∞Ï†à ?¥Î≤§??
+        // Sensitivity events
         document.getElementById('mouseSens').addEventListener('input', (e) => {
             mouseSensitivity = parseFloat(e.target.value);
             document.getElementById('mouseVal').textContent = mouseSensitivity;
             localStorage.setItem('mouseSens', mouseSensitivity);
         });
-
         document.getElementById('scrollSens').addEventListener('input', (e) => {
             scrollSensitivity = parseInt(e.target.value);
             document.getElementById('scrollVal').textContent = scrollSensitivity;
             localStorage.setItem('scrollSens', scrollSensitivity);
         });
 
-        // === ??Î¶¨Ïä§??Í¥ÄÎ¶?===
+        // === Favorites & Recent ===
         function renderAppsLists() {
             const favList = document.getElementById('favoritesList');
             const recentSection = document.getElementById('recent-section');
             const recentList = document.getElementById('recentList');
 
-            // Favorites (Dynamic)
             if (favorites.length > 0) {
-                favList.style.display = 'grid';
-                favList.innerHTML = favorites.map((item, index) => `
-                    <div class="card-btn small">
-                        <div class="btn-delete" onclick="removeFromFavorites(${index}); event.stopPropagation();">√ó</div>
-                        <div onclick="openUrl('${item.url}')" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                            <span class="card-icon">‚≠?/span>
-                            <span class="card-label">${item.label || getHostname(item.url)}</span>
-                        </div>
-                    </div>
-                `).join('');
+                favList.innerHTML = favorites.map((item, i) =>
+                    '<div class="card-btn small">' +
+                        '<div class="btn-delete" onclick="removeFromFavorites(' + i + '); event.stopPropagation();">\u00d7</div>' +
+                        '<div onclick="openUrl(\'' + item.url + '\')" style="display:flex;flex-direction:column;align-items:center;width:100%;">' +
+                            '<span class="card-icon">\u2b50</span>' +
+                            '<span class="card-label">' + (item.label || getHostname(item.url)) + '</span>' +
+                        '</div>' +
+                    '</div>'
+                ).join('');
             } else {
-                favList.style.display = 'grid';
-                favList.innerHTML = `
-                    <div class="card-btn small" style="grid-column: 1 / -1; background: transparent; border: 1px dashed var(--border-color); opacity: 0.6;">
-                        <span class="card-label">Ï¶êÍ≤®Ï∞æÍ∏∞Í∞Ä ?ÜÏäµ?àÎã§.<br>Í∏∞Î°ù?êÏÑú ‚≠êÎ? ?åÎü¨ Ï∂îÍ??òÏÑ∏??</span>
-                    </div>
-                `;
+                favList.innerHTML =
+                    '<div class="card-btn small" style="grid-column:1/-1; background:transparent; border:1px dashed var(--border-color); opacity:0.6;">' +
+                        '<span class="card-label">\uc990\uaca8\ucc3e\uae30\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.<br>\uae30\ub85d\uc5d0\uc11c \u2b50\ub97c \ub20c\ub7ec \ucd94\uac00\ud558\uc138\uc694.</span>' +
+                    '</div>';
             }
 
-            // Recent
             if (recentHistory.length > 0) {
                 recentSection.style.display = 'block';
-                recentList.innerHTML = `
-                    <div style="grid-column: 1 / -1; margin-bottom: 8px;">
-                        <button class="btn-icon" style="font-size: 11px; padding: 4px 8px;" onclick="clearRecentHistory()">Clear All</button>
-                    </div>
-                ` + recentHistory.map((url, index) => `
-                    <div class="card-btn small">
-                        <div class="btn-fav" onclick="addToFavorites('${url}'); event.stopPropagation();">‚≠?/div>
-                        <div class="btn-delete" onclick="removeFromRecent(${index}); event.stopPropagation();">√ó</div>
-                        <div onclick="openUrl('${url}')" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                            <span class="card-icon">?ïí</span>
-                            <span class="card-label">${getHostname(url)}</span>
-                        </div>
-                    </div>
-                `).join('');
+                recentList.innerHTML =
+                    '<div style="grid-column:1/-1; margin-bottom:8px;">' +
+                        '<button class="btn-icon" style="font-size:11px; padding:4px 8px;" onclick="clearRecentHistory()">Clear All</button>' +
+                    '</div>' +
+                    recentHistory.map((url, i) =>
+                        '<div class="card-btn small">' +
+                            '<div class="btn-fav" onclick="addToFavorites(\'' + url + '\'); event.stopPropagation();">\u2b50</div>' +
+                            '<div class="btn-delete" onclick="removeFromRecent(' + i + '); event.stopPropagation();">\u00d7</div>' +
+                            '<div onclick="openUrl(\'' + url + '\')" style="display:flex;flex-direction:column;align-items:center;width:100%;">' +
+                                '<span class="card-icon">\ud83d\udd52</span>' +
+                                '<span class="card-label">' + getHostname(url) + '</span>' +
+                            '</div>' +
+                        '</div>'
+                    ).join('');
             } else {
                 recentSection.style.display = 'none';
             }
         }
 
         function getHostname(url) {
-            try {
-                const u = new URL(url);
-                return u.hostname.replace('www.', '');
-            } catch(e) {
-                return url;
-            }
+            try { return new URL(url).hostname.replace('www.', ''); } catch(e) { return url; }
         }
 
         function addToRecent(url) {
             if (!url) return;
-            // Existing check
-            recentHistory = recentHistory.filter(item => item !== url);
+            recentHistory = recentHistory.filter(u => u !== url);
             recentHistory.unshift(url);
-            // Limit to 10
             if (recentHistory.length > 10) recentHistory.pop();
-            
             localStorage.setItem('recentHistory', JSON.stringify(recentHistory));
             renderAppsLists();
         }
 
-        function removeFromRecent(index) {
-            recentHistory.splice(index, 1);
+        function removeFromRecent(i) {
+            recentHistory.splice(i, 1);
             localStorage.setItem('recentHistory', JSON.stringify(recentHistory));
-            renderAppsLists();
-            vibrate(10);
+            renderAppsLists(); vibrate(10);
         }
 
         function clearRecentHistory() {
-            if (!confirm('ÏµúÍ∑º Î∞©Î¨∏ Í∏∞Î°ù??Î™®Îëê ??†ú?†Íπå??')) return;
+            if (!confirm('\ucd5c\uadfc \ubc29\ubb38 \uae30\ub85d\uc744 \ubaa8\ub450 \uc0ad\uc81c\ud560\uae4c\uc694?')) return;
             recentHistory = [];
             localStorage.setItem('recentHistory', JSON.stringify(recentHistory));
-            renderAppsLists();
-            vibrate(20);
+            renderAppsLists(); vibrate(20);
         }
 
         function addToFavorites(url) {
-            const hostname = getHostname(url);
-            const domainOnly = new URL(url).origin;
-            
-            let choice;
-            if (url !== domainOnly && url !== domainOnly + '/') {
-                choice = confirm(`Ï¶êÍ≤®Ï∞æÍ∏∞???¥Îñ§ Ï£ºÏÜåÎ•??Ä?•Ìï†ÍπåÏöî?\n\n ?ïÏù∏(OK): ?ÑÏ≤¥ Ï£ºÏÜå\n Ï∑®ÏÜå(Cancel): ?ÑÎ©î?∏Îßå (${hostname})`);
-            } else {
-                choice = true; // Already a domain
-            }
-
-            const finalUrl = choice ? url : domainOnly;
-            const label = prompt('Ï¶êÍ≤®Ï∞æÍ∏∞ ?¥Î¶Ñ???ÖÎ†•?òÏÑ∏??', getHostname(finalUrl));
+            var hostname = getHostname(url);
+            var finalUrl = url;
+            try {
+                var domainOnly = new URL(url).origin;
+                if (url !== domainOnly && url !== domainOnly + '/') {
+                    if (!confirm('\uc804\uccb4 \uc8fc\uc18c\ub97c \uc800\uc7a5\ud560\uae4c\uc694?\n\nOK: \uc804\uccb4 \uc8fc\uc18c\nCancel: \ub3c4\uba54\uc778\ub9cc (' + hostname + ')')) {
+                        finalUrl = domainOnly;
+                    }
+                }
+            } catch(e) {}
+            var label = prompt('\uc990\uaca8\ucc3e\uae30 \uc774\ub984\uc744 \uc785\ub825\ud558\uc138\uc694:', getHostname(finalUrl));
             if (label === null) return;
-
             favorites.push({ url: finalUrl, label: label });
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            renderAppsLists();
-            vibrate(30);
+            renderAppsLists(); vibrate(30);
         }
 
-        function removeFromFavorites(index) {
-            if (!confirm('Ï¶êÍ≤®Ï∞æÍ∏∞?êÏÑú ??†ú?†Íπå??')) return;
-            favorites.splice(index, 1);
+        function removeFromFavorites(i) {
+            if (!confirm('\uc990\uaca8\ucc3e\uae30\uc5d0\uc11c \uc0ad\uc81c\ud560\uae4c\uc694?')) return;
+            favorites.splice(i, 1);
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            renderAppsLists();
-            vibrate(10);
+            renderAppsLists(); vibrate(10);
         }
 
-        // === ???ÑÌôò ===
+        // === Tab Switching ===
         function switchTab(tabName, el) {
-            // ?®ÎÑê ?ÑÌôò
-            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-            document.getElementById(`panel-${tabName}`).classList.add('active');
-            
-            // ?¥ÎπÑ ?ÑÏù¥ÏΩ??ÑÌôò
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            if (el) {
-                el.classList.add('active');
-            } else {
-                // el???ÜÎäî Í≤ΩÏö∞ (?? Ï¥àÍ∏∞ Î°úÎìú ?? tabName?ºÎ°ú Ï∞æÏïÑ??active
-                const index = { 'touch': 0, 'input': 1, 'apps': 2 }[tabName];
-                document.querySelectorAll('.nav-item')[index].classList.add('active');
-            }
+            document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+            document.getElementById('panel-' + tabName).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+            if (el) el.classList.add('active');
         }
 
-        // === ?åÏºì ?°Ïã† ?®Ïàò ===
-        function emitClick(btn) {
-            socket.emit('click', { btn });
-            vibrate(30);
-        }
-
-        function emitKey(key) {
-            socket.emit('key', { key });
-            vibrate(20);
-        }
-
-        function emitHotkey(keys) {
-            socket.emit('hotkey', { keys });
-            vibrate(25);
-        }
-
-        function emitSystem(action) {
-            if (action === 'sleep') {
-                if (!confirm('PCÎ•??àÏ†Ñ Î™®ÎìúÎ°??ÑÌôò?†Íπå??')) return;
-            }
-            socket.emit('system', { action });
-            vibrate(30);
-        }
+        // === Socket Emitters ===
+        function emitClick(btn) { socket.emit('click', { btn: btn }); vibrate(30); }
+        function emitKey(key) { socket.emit('key', { key: key }); vibrate(20); }
+        function emitHotkey(keys) { socket.emit('hotkey', { keys: keys }); vibrate(25); }
 
         function reserveSleep() {
-            const mins = prompt('Î™?Î∂??ÑÏóê PCÎ•??àÏ†Ñ Î™®ÎìúÎ°??ÑÌôò?†Íπå?? (?´ÏûêÎß??ÖÎ†•)', '30');
+            var mins = prompt('\uba87 \ubd84 \ud6c4\uc5d0 PC\ub97c \uc808\uc804 \ubaa8\ub4dc\ub85c \uc804\ud658\ud560\uae4c\uc694? (\uc22b\uc790\ub9cc \uc785\ub825)', '30');
             if (mins === null) return;
-            const delay = parseInt(mins);
-            if (isNaN(delay) || delay < 0) {
-                alert('?¨Î∞îÎ•??úÍ∞Ñ???ÖÎ†•?¥Ï£º?∏Ïöî.');
-                return;
-            }
-            if (!confirm(`${delay}Î∂??ÑÏóê PCÎ•??àÏ†Ñ Î™®ÎìúÎ°??ÑÌôò?†Íπå??`)) return;
+            var delay = parseInt(mins);
+            if (isNaN(delay) || delay < 0) { alert('\uc62c\ubc14\ub978 \uc2dc\uac04\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694.'); return; }
+            if (!confirm(delay + '\ubd84 \ud6c4\uc5d0 PC\ub97c \uc808\uc804 \ubaa8\ub4dc\ub85c \uc804\ud658\ud560\uae4c\uc694?')) return;
             socket.emit('system', { action: 'sleep', delay: delay });
             vibrate(30);
         }
 
-        socket.on('system_status', (data) => {
-            alert(data.message);
-        });
+        socket.on('system_status', function(d) { alert(d.message); });
 
-        function requestCurrentTab() {
-            socket.emit('get_current_tab');
-            vibrate(20);
-        }
+        function requestCurrentTab() { socket.emit('get_current_tab', {}); vibrate(20); }
 
-        socket.on('current_tab', (data) => {
-            if (data.error) {
-                alert('???ïÎ≥¥Î•?Í∞Ä?∏Ïò§?îÎç∞ ?§Ìå®?àÏäµ?àÎã§: ' + data.error);
-                return;
-            }
-            const container = document.getElementById('currentTabContainer');
-            const titleEl = document.getElementById('currentTabTitle');
-            const urlEl = document.getElementById('currentTabUrl');
-            const openBtn = document.getElementById('openTabBtn');
-            const favBtn = document.getElementById('favTabBtn');
-
-            titleEl.textContent = data.title || 'Unknown Title';
-            urlEl.textContent = data.url || '';
+        socket.on('current_tab', function(data) {
+            if (data.error) { alert('\ud0ed \uc815\ubcf4\ub97c \uac00\uc838\uc624\ub294\ub370 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4: ' + data.error); return; }
+            var container = document.getElementById('currentTabContainer');
+            document.getElementById('currentTabTitle').textContent = data.title || 'Unknown Title';
+            document.getElementById('currentTabUrl').textContent = data.url || '';
             container.style.display = 'block';
-
+            var openBtn = document.getElementById('openTabBtn');
+            var favBtn = document.getElementById('favTabBtn');
             if (data.url) {
                 openBtn.style.display = 'block';
-                openBtn.onclick = () => {
-                    window.open(data.url, '_blank');
-                    vibrate(40);
-                };
+                openBtn.onclick = function() { window.open(data.url, '_blank'); vibrate(40); };
                 favBtn.style.display = 'block';
-                favBtn.onclick = () => {
-                    addToFavorites(data.url);
-                    vibrate(30);
-                };
+                favBtn.onclick = function() { addToFavorites(data.url); vibrate(30); };
             } else {
                 openBtn.style.display = 'none';
                 favBtn.style.display = 'none';
             }
         });
 
-        function openUrl(url) {
-            socket.emit('open', { url });
-            addToRecent(url);
-            vibrate(40);
-        }
+        function openUrl(url) { socket.emit('open', { url: url }); addToRecent(url); vibrate(40); }
 
         function sendText() {
-            const input = document.getElementById('textInput');
-            const text = input.value;
-            if(!text) return;
-            socket.emit('type', { text, pressEnter: false });
+            var input = document.getElementById('textInput');
+            if (!input.value) return;
+            socket.emit('type', { text: input.value, pressEnter: false });
             input.value = '';
             vibrate(50);
         }
 
         function normalizeUrl(raw) {
             if (!raw) return '';
-            const trimmed = raw.trim();
-            if (/^https?:\/\//i.test(trimmed)) {
-                return trimmed;
-            }
-            return `https://${trimmed}`;
+            var t = raw.trim();
+            return /^https?:\/\//i.test(t) ? t : 'https://' + t;
         }
 
         function openAppUrl() {
-            const input = document.getElementById('appUrlInput');
-            const value = input.value;
-            if (!value) return;
-            const normalized = normalizeUrl(value);
-            openUrl(normalized);
+            var input = document.getElementById('appUrlInput');
+            if (!input.value) return;
+            openUrl(normalizeUrl(input.value));
             input.value = '';
         }
-        
-        // ?îÌÑ∞??Ï≤òÎ¶¨
-        document.getElementById('textInput').addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-                e.preventDefault();
-                sendText();
-            }
+
+        // Enter key handlers
+        document.getElementById('textInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { sendText(); e.preventDefault(); }
+        });
+        document.getElementById('appUrlInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { openAppUrl(); e.preventDefault(); }
         });
 
-        function vibrate(ms) {
-            if(navigator.vibrate) navigator.vibrate(ms);
-        }
-
-        // === ?∞Ïπò?®Îìú Î°úÏßÅ ===
-        const touchpad = document.getElementById('touchpad');
-        let lastX = 0;
-        let lastY = 0;
-        let isTouching = false;
-        let startTime = 0;
-        let mode = 'move'; // 'move' or 'scroll'
-        let lastScrollY = 0;
-        let hasMoved = false;
-
-        function toggleAiInputs(enabled) {
-            const container = document.getElementById('aiConfigInputs');
-            container.style.opacity = enabled ? '1' : '0.5';
-            container.style.pointerEvents = enabled ? 'auto' : 'none';
-        }
-
-        function saveAiSettings() {
-            const data = {
-                enabled: document.getElementById('aiEnabledToggle').checked,
-                selected_model: document.getElementById('aiModelSelect').value,
-                api_keys: {
-                    google: document.getElementById('key-google').value,
-                    openai: document.getElementById('key-openai').value,
-                    deepseek: document.getElementById('key-deepseek').value
-                }
-            };
-            socket.emit('save_ai_config', data);
-            closeModals();
-            vibrate(30);
-        }
-
-        function analyzeCurrentSite() {
-            // ?ÑÏû¨ ?úÏÑ±?îÎêú Î∏åÎùº?∞Ï? URL??Í∞Ä?∏Ïò§Í∏??ÑÌï¥ sync_from_pc??Î°úÏßÅ ?ºÎ? ?úÏö© (?úÎ≤Ñ Ï∏?Íµ¨ÌòÑ ?ÑÏöî)
-            document.getElementById('mappingStatus').textContent = "?¨Ïù¥??Î∂ÑÏÑù Ï§?.. (ÎπÑÏö©??Î∞úÏÉù?????àÏäµ?àÎã§)";
-            socket.emit('sync_from_pc_silent'); // Silent version to get URL without opening on mobile
-            vibrate(20);
-        }
-
-        socket.on('pc_url_received', (data) => {
-            if (data.url) socket.emit('analyze_site', { url: data.url });
-        });
-
-        function applyAiMapping(data) {
-            const mapping = data.mapping;
-            const statusEl = document.getElementById('mappingStatus');
-
-            if (mapping) {
-                statusEl.textContent = `Î∂ÑÏÑù ?ÑÎ£å: ${mapping.site_name || data.url}`;
-                statusEl.style.color = "#55efc4";
-                vibrate([30, 50, 30]);
-            } else {
-                statusEl.textContent = "";
-                statusEl.style.color = "var(--primary-color)"; // Reset color
-            }
-
-            // Î™®Îì† Î≤ÑÌäº Ï¥àÍ∏∞????Îß§Ìïë ?ÅÏö©
-            const allAiButtons = document.querySelectorAll('.card-btn[data-ai-id]');
-            allAiButtons.forEach(btn => {
-                const aiId = btn.getAttribute('data-ai-id');
-                if (!mapping) {
-                    btn.style.opacity = "1";
-                    btn.style.pointerEvents = "auto";
-                    btn.style.borderColor = "var(--border-color)";
-                    btn.style.boxShadow = "none"; // Reset shadow
-                    // Reset onclick to original if possible, or a generic one
-                    // For now, we'll just re-enable. A more robust solution would store original onclicks.
-                    return;
-                }
-
-                if (mapping[aiId]) {
-                    btn.style.opacity = "1";
-                    btn.style.pointerEvents = "auto";
-                    btn.style.borderColor = "var(--primary-color)";
-                    btn.style.boxShadow = "0 0 10px var(--primary-glow)";
-                    // ?®Ï∂ï???§Î≤Ñ?ºÏù¥??Î°úÏßÅ (?ÑÏöî ??emitKey ?òÏ†ï)
-                    btn.onclick = () => { emitKey(mapping[aiId]); vibrate(20); };
-                } else if (["refresh", "back", "forward"].includes(aiId)) {
-                    // ?ÑÏàò Î∏åÎùº?∞Ï? Í∏∞Îä•?Ä ?†Ï?
-                    btn.style.opacity = "1";
-                    btn.style.pointerEvents = "auto";
-                    btn.style.borderColor = "var(--border-color)"; // Keep default border
-                    btn.style.boxShadow = "none"; // No glow for unmapped but active
-                } else {
-                    // Îß§Ìïë?òÏ? ?äÏ? Î≤ÑÌäº ÎπÑÌôú?±Ìôî
-                    btn.style.opacity = "0.2";
-                    btn.style.pointerEvents = "none";
-                    btn.style.boxShadow = "none";
-                    btn.style.borderColor = "transparent";
-                }
-            });
-        }
-
-        // Render Sites
-        function renderSites(data) {
-            const fGrid = document.getElementById('favoritesGrid');
-            fGrid.innerHTML = '';
-            data.favorites.forEach(fav => {
-                const item = document.createElement('div');
-                item.className = 'card-btn';
-                item.innerHTML = `<span class="card-icon">${fav.icon || '‚≠?}</span><span class="card-label">${fav.name}</span>`;
-                item.onclick = () => openUrl(fav.url);
-                // Long press for deletion? Simplified for now with an edit button maybe later.
-                fGrid.appendChild(item);
-            });
-
-            const hList = document.getElementById('historyList');
-            hList.innerHTML = '';
-            data.history.forEach(site => {
-                const item = document.createElement('div');
-                item.className = 'site-item';
-                const domain = extractDisplayDomain(site);
-                item.innerHTML = `
-                    <div class="site-icon-box">?îó</div>
-                    <div class="site-info" onclick="openUrl('${site}')">
-                        <span class="site-name">${domain}</span>
-                        <span class="site-url">${site}</span>
-                    </div>
-                    <div class="site-actions">
-                        <button class="btn-site-action" onclick="starHistory('${site}')">‚≠?/button>
-                        <button class="btn-site-action" onclick="deleteHistory('${site}')">?óëÔ∏?/button>
-                    </div>
-                `;
-                hList.appendChild(item);
-            });
-        }
-
-        function extractDisplayDomain(url) {
-            try { return new URL(url).hostname; } catch (e) { return url; }
-        }
-
-        // Favorites Management
-        function starHistory(url) {
-            socket.emit('get_domain_info', { url });
-            vibrate(20);
-        }
-
-        function showStarChoice(data) {
-            const modal = document.getElementById('starChoiceModal');
-            const container = document.getElementById('choiceContainer');
-            container.innerHTML = `
-                <button class="choice-btn" onclick="startFavEdit('${data.url}')">
-                    <span class="choice-icon">?ìÑ</span>
-                    <div class="choice-text">
-                        <div>???òÏù¥ÏßÄ ?ÑÏ≤¥ ?Ä??/div>
-                        <div>${data.url}</div>
-                    </div>
-                </button>
-                <button class="choice-btn" onclick="startFavEdit('${data.domain}')">
-                    <span class="choice-icon">?è†</span>
-                    <div class="choice-text">
-                        <div>Í∏∞Î≥∏ ?ÑÎ©î???Ä??/div>
-                        <div>${data.domain}</div>
-                    </div>
-                </button>
-            `;
-            modal.classList.add('active');
-        }
-
-        function startFavEdit(url) {
-            document.getElementById('starChoiceModal').classList.remove('active');
-            const modal = document.getElementById('favEditModal');
-            document.getElementById('favUrlLabel').textContent = url;
-            document.getElementById('favNameInput').value = extractDisplayDomain(url);
-            document.getElementById('favIconInput').value = '‚≠?;
-            document.getElementById('saveFavBtn').onclick = () => saveFavorite(url);
-            modal.classList.add('active');
-        }
-
-        function saveFavorite(url) {
-            const name = document.getElementById('favNameInput').value || extractDisplayDomain(url);
-            const icon = document.getElementById('favIconInput').value || '‚≠?;
-            socket.emit('add_favorite', { name, url, icon });
-            closeModals();
-            vibrate(50);
-        }
-
-        function deleteHistory(url) { if (confirm('??Î∞©Î¨∏ Í∏∞Î°ù????†ú?†Íπå??')) { socket.emit('delete_site', { url, type: 'history' }); vibrate(20); } }
-
-        // Modals
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); stopRecognition(); }
-        function showTimerModal() { document.getElementById('timerModal').classList.add('active'); }
-        function setTimer(min) { socket.emit('system', { action: 'timer', min }); closeModals(); }
-        function setManualTimer() { const min = parseInt(document.getElementById('manualMinutes').value); if (min > 0) setTimer(min); else alert('Î∂ÑÏùÑ ?ÖÎ†•?¥Ï£º?∏Ïöî.'); }
-        function cancelShutdown() { socket.emit('system', { action: 'cancel_shutdown' }); closeModals(); }
-
-        // STT
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = (SR) ? new SR() : null;
-        if (recognition) {
-            recognition.lang = 'ko-KR';
-            recognition.onresult = (e) => { const t = e.results[0][0].transcript; document.getElementById('voiceResult').textContent = t; document.getElementById('textInput').value = t; setTimeout(closeModals, 1000); };
-        }
-        function showVoiceModal() { if (!recognition) return alert('?åÏÑ± ?∏Ïãù??ÏßÄ?êÌïòÏßÄ ?äÎäî Î∏åÎùº?∞Ï??ÖÎãà??'); document.getElementById('voiceResult').textContent = ''; document.getElementById('voiceModal').classList.add('active'); recognition.start(); vibrate(20); }
-        function stopRecognition() { if (recognition) try { recognition.stop(); } catch (e) { } }
-
-        // Touchpad
-        const touchpad = document.getElementById('touchpad');
-        let lastX, lastY, isTouching, startTime, hasMoved, isScroll;
-        touchpad.addEventListener('touchstart', (e) => {
-            e.preventDefault(); isTouching = true; hasMoved = false; startTime = Date.now();
-            const rect = touchpad.getBoundingClientRect(); const t = e.touches[0];
-            const x = t.clientX - rect.left;
-            isScroll = (x > rect.width - 50) || (e.touches.length === 2);
-            lastX = t.clientX; lastY = t.clientY;
-        }, { passive: false });
-        touchpad.addEventListener('touchend', (e) => {
-            e.preventDefault(); if (isTouching && !hasMoved && (Date.now() - startTime < 200)) emitClick(isScroll ? 'right' : 'left');
-            isTouching = false;
-        });
-        touchpad.addEventListener('touchmove', (e) => {
-            e.preventDefault(); if (!isTouching) return;
-            const t = e.touches[0]; const dx = t.clientX - lastX, dy = t.clientY - lastY;
-            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-                hasMoved = true;
-                if (isScroll) socket.emit('scroll', { dy: dy * (scrollSens / 5) });
-                else socket.emit('move', { dx: dx * mouseSens, dy: dy * mouseSens });
-                lastX = t.clientX; lastY = t.clientY;
-            }
-        }, { passive: false });
-
+        // === Vibrate Helper ===
         function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
-        document.getElementById('textInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendText(); });
 
-        // Responsive Fix
-        function adjustVH() { document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`); }
-        window.addEventListener('resize', adjustVH); adjustVH();
+        // === Touchpad Logic ===
+        var touchpad = document.getElementById('touchpad');
+        var touchData = {};
+
+        touchpad.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            for (var i = 0; i < e.changedTouches.length; i++) {
+                var touch = e.changedTouches[i];
+                touchData[touch.identifier] = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+            }
+        }, { passive: false });
+
+        touchpad.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            for (var i = 0; i < e.changedTouches.length; i++) {
+                var touch = e.changedTouches[i];
+                var prev = touchData[touch.identifier];
+                if (!prev) continue;
+                var rect = touchpad.getBoundingClientRect();
+                var relX = touch.clientX - rect.left;
+                var isScroll = relX > rect.width - 60;
+                var dx = (touch.clientX - prev.x) * mouseSensitivity;
+                var dy = (touch.clientY - prev.y) * mouseSensitivity;
+
+                if (isScroll) {
+                    var scrollDy = -(touch.clientY - prev.y) * 0.1 * scrollSensitivity;
+                    if (Math.abs(scrollDy) > 0.5) socket.emit('scroll', { dy: scrollDy });
+                } else {
+                    socket.emit('move', { dx: dx, dy: dy });
+                }
+                touchData[touch.identifier] = { x: touch.clientX, y: touch.clientY, time: prev.time };
+            }
+        }, { passive: false });
+
+        touchpad.addEventListener('touchend', function(e) {
+            for (var i = 0; i < e.changedTouches.length; i++) {
+                var touch = e.changedTouches[i];
+                var prev = touchData[touch.identifier];
+                if (prev && Date.now() - prev.time < 200) {
+                    var rect = touchpad.getBoundingClientRect();
+                    if (touch.clientX - rect.left <= rect.width - 60) {
+                        emitClick('left');
+                    }
+                }
+                delete touchData[touch.identifier];
+            }
+        });
     </script>
 </body>
-
 </html>

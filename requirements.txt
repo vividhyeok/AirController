@@ -1,9 +1,0 @@
-SpeechRecognition
-pyautogui
-pyaudio
-pyperclip
-keyboard
-setuptools
-Flask
-Flask-SocketIO
-eventlet
