@@ -1,2 +1,6 @@
-pyinstaller --noconfirm --onefile --console --name "AirController" --add-data "templates;templates" --hidden-import=eventlet --hidden-import=engineio.async_drivers.eventlet --hidden-import=engineio.async_drivers.threading remote_server.py
+@echo off
+echo Building AirController.exe...
+pyinstaller --noconfirm AirController.spec
+echo.
+echo Build complete! Check dist folder for AirController.exe
 pause
