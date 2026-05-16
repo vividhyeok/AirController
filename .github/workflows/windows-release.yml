@@ -1,0 +1,82 @@
+name: Windows Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test
+        run: go test ./...
+
+      - name: Build AirMouse.exe
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          go build -ldflags "-s -w" -o dist/AirMouse.exe .
+          Compress-Archive -Path dist/AirMouse.exe -DestinationPath dist/AirMouse-windows-amd64.zip -Force
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AirMouse-windows-amd64
+          path: |
+            dist/AirMouse.exe
+            dist/AirMouse-windows-amd64.zip
+
+      - name: Update latest release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f latest $env:GITHUB_SHA
+          git push origin latest --force
+
+          $notes = @"
+          Automated Windows build from $env:GITHUB_SHA.
+
+          This release contains the Windows build only.
+          "@
+
+          gh release view latest *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create latest `
+              --title "Latest Windows Build" `
+              --notes $notes `
+              --target $env:GITHUB_SHA `
+              --latest `
+              dist/AirMouse.exe `
+              dist/AirMouse-windows-amd64.zip
+          } else {
+            gh release edit latest `
+              --title "Latest Windows Build" `
+              --notes $notes `
+              --latest
+            gh release upload latest `
+              dist/AirMouse.exe `
+              dist/AirMouse-windows-amd64.zip `
+              --clobber
+          }

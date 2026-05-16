@@ -3,166 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Controller Connection</title>
-    <!-- Google Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-
+    <title>Air Mouse 연결</title>
     <style>
         :root {
-            --bg: #121212;
-            --surface: #1e1e1e;
-            --primary: #5b9bd5;
-            --text-main: #ffffff;
-            --text-sub: #a0a0a0;
+            --bg: #101214;
+            --surface: #181c20;
+            --surface-2: #22282e;
+            --primary: #7fb2ff;
+            --ok: #8de0c8;
+            --text: #f5f7fa;
+            --muted: #9ca6b2;
+            --border: rgba(255,255,255,0.09);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
         }
 
         body {
             margin: 0;
-            padding: 0;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--text);
         }
 
         .card {
+            width: min(420px, 100%);
             background: var(--surface);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px;
             text-align: center;
-            max-width: 360px;
-            width: 90%;
-            border: 1px solid rgba(255,255,255,0.08);
         }
 
-        .icon-wrap {
-            width: 64px; height: 64px;
-            background: rgba(91, 155, 213, 0.1);
-            color: var(--primary);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px;
+        h1 {
+            margin: 0 0 8px;
+            font-size: 24px;
+            letter-spacing: 0;
         }
-        .icon-wrap span { font-size: 32px; }
 
-        h1 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
-        p { margin: 0 0 24px; color: var(--text-sub); font-size: 14px; line-height: 1.5; }
+        p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.55;
+        }
 
         .qr-frame {
-            background: white;
+            margin: 24px auto 18px;
+            width: fit-content;
             padding: 12px;
             border-radius: 16px;
-            display: inline-block;
-            margin-bottom: 24px;
+            background: #fff;
         }
-        .qr-frame img { display: block; width: 180px; height: 180px; }
+
+        .qr-frame img {
+            display: block;
+            width: 190px;
+            height: 190px;
+        }
 
         .url-pill {
-            background: rgba(255,255,255,0.05);
-            padding: 12px 20px;
-            border-radius: 99px;
+            display: block;
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
             color: var(--primary);
-            font-family: monospace;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 13px;
+            overflow-wrap: anywhere;
         }
 
-        .info-grid {
-            margin-top: 32px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .info-item {
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            font-size: 12px; color: var(--text-sub);
-        }
-        .info-item .material-icons-round { font-size: 20px; color: var(--text-main); }
-
-        .status-footer {
-            margin-top: 32px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.05);
+        .status {
+            margin-top: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            color: var(--muted);
             font-size: 13px;
-            color: var(--text-sub);
-        }
-        .status-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: #ff4d4d;
-        }
-        .status-dot.online {
-            background: #00c853;
-            box-shadow: 0 0 8px rgba(0, 200, 83, 0.4);
+            font-weight: 700;
         }
 
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #e35d5d;
+        }
+
+        .status-dot.online {
+            background: var(--ok);
+        }
+
+        .note {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            text-align: left;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="icon-wrap">
-            <span class="material-icons-round">phonelink_setup</span>
-        </div>
-        <h1>PC 리모컨 연결</h1>
-        <p>스마트폰 카메라로 아래 QR 코드를<br>스캔하여 접속하세요.</p>
-        
+    <main class="card">
+        <h1>Air Mouse</h1>
+        <p>휴대폰이나 태블릿으로 아래 QR을 스캔하거나 주소를 직접 열어 연결합니다.</p>
+
         <div class="qr-frame">
-            <img src="data:image/png;base64,{{.QRData}}" alt="QR Code">
+            <img src="data:image/png;base64,{{.QRData}}" alt="Air Mouse QR Code">
         </div>
 
-        <div>
-            <div class="url-pill">
-                <span class="material-icons-round" style="font-size:16px;">link</span>
-                {{.ControllerURL}}
-            </div>
+        <div class="url-pill">{{.AppURL}}</div>
+
+        <div class="status">
+            <span id="statusDot" class="status-dot"></span>
+            <span id="statusText">PC 로컬 연결 확인 중</span>
         </div>
 
-        <div class="info-grid">
-            <div class="info-item">
-                <span class="material-icons-round">wifi</span>
-                <span>Wi-Fi 연결 확인</span>
-            </div>
-            <div class="info-item">
-                <span class="material-icons-round">open_in_browser</span>
-                <span>대소문자 구분</span>
-            </div>
+        <div class="note">
+            PC 브라우저에서 연결됨으로 보여도 휴대폰이 계속 로딩되면 휴대폰이 같은 네트워크에 있는지, Windows 방화벽에서 Air Mouse 또는 현재 포트가 허용되어 있는지 확인하세요.
         </div>
-
-        <div class="status-footer">
-            <div id="statusDot" class="status-dot"></div>
-            <span id="statusText">서버 연결 대기 중...</span>
-        </div>
-    </div>
+    </main>
 
     <script>
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
+
         function connectWS() {
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const ws = new WebSocket(proto + '//' + location.host + '/ws');
             ws.onopen = () => {
                 statusDot.classList.add('online');
-                statusText.textContent = '서버 대기 중 (기기 연결 가능)';
+                statusText.textContent = 'PC 로컬 연결됨';
             };
             ws.onclose = () => {
                 statusDot.classList.remove('online');
-                statusText.textContent = '서버 연결 끊김';
-                setTimeout(connectWS, 3000);
+                statusText.textContent = 'PC 로컬 연결 대기 중';
+                setTimeout(connectWS, 2500);
             };
         }
+
         connectWS();
     </script>
 </body>

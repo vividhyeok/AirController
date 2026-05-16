@@ -1,4 +1,4 @@
-module AirController
+module AirMouse
 
 go 1.25.0
 
