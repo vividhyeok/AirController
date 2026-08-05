@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product
+      Id="*"
+      Name="Air Mouse"
+      Language="1042"
+      Codepage="949"
+      Version="$(var.ProductVersion)"
+      Manufacturer="vividhyeok"
+      UpgradeCode="2FDD386F-5F5D-448D-A50B-BBCACDDECED0">
+
+    <Package
+        InstallerVersion="500"
+        Compressed="yes"
+        InstallScope="perMachine"
+        Platform="x64"
+        Description="Air Mouse Windows Remote Controller" />
+
+    <MajorUpgrade
+        AllowSameVersionUpgrades="yes"
+        DowngradeErrorMessage="A newer version of Air Mouse is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="AirController" />
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="PROGRAMMENUDIR" Name="Air Mouse" />
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="MainExecutable" Guid="ADCF38CB-E525-4DBD-9A23-DC6F96AC3591" Win64="yes">
+        <File Id="AirMouseExe" Source="$(var.SourceDir)\AirMouse.exe" KeyPath="yes">
+          <Shortcut
+              Id="StartMenuShortcut"
+              Directory="PROGRAMMENUDIR"
+              Name="Air Mouse"
+              Description="휴대폰 브라우저로 Windows PC 제어"
+              WorkingDirectory="INSTALLFOLDER"
+              Advertise="yes" />
+        </File>
+        <RemoveFolder Id="RemoveProgramMenuFolder" Directory="PROGRAMMENUDIR" On="uninstall" />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="MainFeature" Title="Air Mouse" Level="1">
+      <ComponentRef Id="MainExecutable" />
+    </Feature>
+  </Product>
+</Wix>

@@ -2,10 +2,14 @@ class WS {
     constructor() {
         this.handlers = {};
         this.reconnectTimer = null;
+        this.retryDelay = 400;
         this.connect();
     }
 
     connect() {
+        if (this.ws && (this.ws.readyState === WebSocket.CONNECTING || this.ws.readyState === WebSocket.OPEN)) {
+            return;
+        }
         if (!location.host) {
             this.ws = null;
             this.fire('disconnect');
@@ -19,14 +23,21 @@ class WS {
             this.fire('disconnect');
             return;
         }
-        this.ws.onopen = () => this.fire('connect');
-        this.ws.onclose = () => {
+        const current = this.ws;
+        current.onopen = () => {
+            this.retryDelay = 400;
+            this.fire('connect');
+        };
+        current.onclose = () => {
+            if (this.ws === current) this.ws = null;
             this.fire('disconnect');
             clearTimeout(this.reconnectTimer);
-            this.reconnectTimer = setTimeout(() => this.connect(), 1200);
+            const delay = document.hidden ? Math.max(1500, this.retryDelay) : this.retryDelay;
+            this.reconnectTimer = setTimeout(() => this.connect(), delay);
+            this.retryDelay = Math.min(4000, Math.round(this.retryDelay * 1.7));
         };
-        this.ws.onerror = () => {};
-        this.ws.onmessage = (event) => {
+        current.onerror = () => current.close();
+        current.onmessage = (event) => {
             try {
                 const message = JSON.parse(event.data);
                 this.fire(message.event, message.data);
@@ -45,11 +56,31 @@ class WS {
     emit(event, data) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ event: event, data: data || {} }));
+            return true;
         }
+        return false;
+    }
+
+    emitRealtime(event, data) {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN || this.ws.bufferedAmount > 16384) {
+            return false;
+        }
+        this.ws.send(JSON.stringify({ event: event, data: data || {} }));
+        return true;
+    }
+
+    reconnectNow() {
+        clearTimeout(this.reconnectTimer);
+        this.retryDelay = 400;
+        this.connect();
     }
 }
 
 const socket = new WS();
+window.addEventListener('online', () => socket.reconnectNow());
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) socket.reconnectNow();
+});
 const statusBadge = document.getElementById('statusBadge');
 const statusText = document.getElementById('statusText');
 const touchpad = document.getElementById('touchpad');
@@ -58,7 +89,7 @@ const appUrlInput = document.getElementById('appUrlInput');
 
 let mouseSensitivity = 2.5;
 let scrollSensitivity = 3;
-let favorites = safeReadJSON('favorites', []);
+let favorites = normalizeFavorites(safeReadJSON('favorites', []));
 let recentHistory = safeReadJSON('recentHistory', []);
 
 socket.on('connect', () => {
@@ -107,6 +138,20 @@ function safeReadJSON(key, fallback) {
     } catch (_) {
         return fallback;
     }
+}
+
+function normalizeFavorites(items) {
+    if (!Array.isArray(items)) return [];
+    const seen = new Set();
+    return items.reduce((result, item) => {
+        const rawUrl = typeof item === 'string' ? item : item && item.url;
+        const url = normalizeUrl(rawUrl);
+        if (!url || seen.has(url)) return result;
+        seen.add(url);
+        const rawLabel = typeof item === 'object' && item ? item.label : '';
+        result.push({ url: url, label: String(rawLabel || getHostname(url)).slice(0, 60) });
+        return result;
+    }, []).slice(0, 24);
 }
 
 function writeList(key, value) {
@@ -166,6 +211,7 @@ function renderFavorites() {
             title: item.label || getHostname(item.url),
             url: item.url,
             actions: [
+                { className: 'i-edit', actionClass: 'favorite', title: '이름 수정', onClick: () => renameFavorite(index) },
                 { className: 'i-trash', actionClass: 'delete', title: '삭제', onClick: () => removeFromFavorites(index) }
             ]
         }));
@@ -294,6 +340,17 @@ function removeFromFavorites(index) {
     vibrate(10);
 }
 
+function renameFavorite(index) {
+    const item = favorites[index];
+    if (!item) return;
+    const label = prompt('즐겨찾기 이름', item.label || getHostname(item.url));
+    if (label === null) return;
+    item.label = label.trim().slice(0, 60) || getHostname(item.url);
+    writeList('favorites', favorites);
+    renderFavorites();
+    vibrate(14);
+}
+
 function addInputFavorite() {
     if (!appUrlInput.value) return;
     addToFavorites(appUrlInput.value);
@@ -318,11 +375,78 @@ function clearRecentHistory() {
     vibrate(20);
 }
 
+function exportPersonalization() {
+    const data = {
+        version: 1,
+        favorites: favorites,
+        recentHistory: recentHistory,
+        preferences: {
+            mouseSensitivity: mouseSensitivity,
+            scrollSensitivity: scrollSensitivity,
+            activeTab: localStorage.getItem('activeTab') || 'touch'
+        }
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'aircontroller-settings.json';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    vibrate(14);
+}
+
+async function importPersonalization(event) {
+    const input = event.target;
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try {
+        const data = JSON.parse(await file.text());
+        if (!data || !Array.isArray(data.favorites)) {
+            throw new Error('올바른 설정 백업 파일이 아닙니다.');
+        }
+
+        favorites = normalizeFavorites(data.favorites);
+        recentHistory = Array.isArray(data.recentHistory)
+            ? data.recentHistory.map(normalizeUrl).filter(Boolean).slice(0, 12)
+            : [];
+        writeList('favorites', favorites);
+        writeList('recentHistory', recentHistory);
+
+        const preferences = data.preferences || {};
+        const savedMouse = Number(preferences.mouseSensitivity);
+        const savedScroll = Number(preferences.scrollSensitivity);
+        if (Number.isFinite(savedMouse) && savedMouse >= 1 && savedMouse <= 5) {
+            localStorage.setItem('mouseSens', savedMouse);
+        }
+        if (Number.isFinite(savedScroll) && savedScroll >= 1 && savedScroll <= 5) {
+            localStorage.setItem('scrollSens', savedScroll);
+        }
+        if (['touch', 'input', 'apps'].includes(preferences.activeTab)) {
+            localStorage.setItem('activeTab', preferences.activeTab);
+        }
+        location.reload();
+    } catch (error) {
+        alert(error.message || '설정을 복원하지 못했습니다.');
+        input.value = '';
+    }
+}
+
 function switchTab(tabName, el) {
     document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
     document.getElementById('panel-' + tabName).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     if (el) el.classList.add('active');
+    localStorage.setItem('activeTab', tabName);
+}
+
+function restoreLastTab() {
+    const tabName = localStorage.getItem('activeTab') || 'touch';
+    if (!['touch', 'input', 'apps'].includes(tabName)) return;
+    const button = document.querySelector('.nav-item[data-tab="' + tabName + '"]');
+    if (button) switchTab(tabName, button);
 }
 
 function emitClick(btn) {
@@ -401,6 +525,44 @@ function isInScrollZone(clientX, rect) {
 }
 
 const pointerData = {};
+let inputFrame = 0;
+let pendingMoveX = 0;
+let pendingMoveY = 0;
+let pendingScroll = 0;
+
+function scheduleRealtimeInput() {
+    if (!inputFrame) inputFrame = requestAnimationFrame(flushRealtimeInput);
+}
+
+function queueMove(dx, dy) {
+    pendingMoveX += dx;
+    pendingMoveY += dy;
+    scheduleRealtimeInput();
+}
+
+function queueScroll(dy) {
+    pendingScroll += dy;
+    scheduleRealtimeInput();
+}
+
+function flushRealtimeInput() {
+    if (inputFrame) cancelAnimationFrame(inputFrame);
+    inputFrame = 0;
+
+    const dx = pendingMoveX;
+    const dy = pendingMoveY;
+    const scroll = Math.max(-10, Math.min(10, pendingScroll));
+    pendingMoveX = 0;
+    pendingMoveY = 0;
+    pendingScroll = 0;
+
+    if (Math.abs(dx) > 0.12 || Math.abs(dy) > 0.12) {
+        socket.emitRealtime('move', { dx: dx, dy: dy });
+    }
+    if (scroll) {
+        socket.emitRealtime('scroll', { dy: scroll });
+    }
+}
 
 touchpad.addEventListener('pointerdown', event => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
@@ -432,16 +594,14 @@ touchpad.addEventListener('pointermove', event => {
         if (Math.abs(prev.scrollAccum) >= threshold) {
             const steps = Math.min(6, Math.floor(Math.abs(prev.scrollAccum) / threshold));
             const dir = prev.scrollAccum > 0 ? 1 : -1;
-            for (let i = 0; i < steps; i++) {
-                socket.emit('scroll', { dy: dir * 2 });
-            }
+            queueScroll(dir * 2 * steps);
             prev.scrollAccum -= dir * steps * threshold;
         }
     } else {
         const dx = rawDx * mouseSensitivity;
         const dy = rawDy * mouseSensitivity;
         if (Math.abs(dx) > 0.12 || Math.abs(dy) > 0.12) {
-            socket.emit('move', { dx: dx, dy: dy });
+            queueMove(dx, dy);
         }
     }
 
@@ -452,6 +612,7 @@ touchpad.addEventListener('pointermove', event => {
 function finishPointer(event) {
     const prev = pointerData[event.pointerId];
     if (!prev) return;
+    flushRealtimeInput();
     const elapsed = Date.now() - prev.time;
     const totalMove = Math.hypot(event.clientX - prev.startX, event.clientY - prev.startY);
     if (elapsed < 260 && totalMove < 10) {
@@ -479,3 +640,4 @@ appUrlInput.addEventListener('keydown', event => {
 
 setupSensitivity();
 renderAppsLists();
+restoreLastTab();

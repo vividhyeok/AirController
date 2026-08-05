@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -30,6 +31,7 @@ var templatesFS embed.FS
 var (
 	user32   = syscall.NewLazyDLL("user32.dll")
 	kernel32 = syscall.NewLazyDLL("kernel32.dll")
+	shell32  = syscall.NewLazyDLL("shell32.dll")
 
 	procSetCursorPos         = user32.NewProc("SetCursorPos")
 	procGetCursorPos         = user32.NewProc("GetCursorPos")
@@ -47,6 +49,7 @@ var (
 	procGlobalFree           = kernel32.NewProc("GlobalFree")
 	procGlobalLock           = kernel32.NewProc("GlobalLock")
 	procGlobalUnlock         = kernel32.NewProc("GlobalUnlock")
+	procShellExecuteW        = shell32.NewProc("ShellExecuteW")
 )
 
 const (
@@ -71,6 +74,11 @@ const (
 	maxScrollDelta       = 10
 	clipboardRetryCount  = 10
 	clipboardRetryWaitMS = 20
+	firewallRuleName     = "AirController Remote"
+	firewallPortRange    = "5000-5019"
+	swHide               = 0
+	swShowNormal         = 1
+	bluetoothCacheTTL    = 10 * time.Second
 )
 
 var (
@@ -78,10 +86,12 @@ var (
 	pongWait     = 60 * time.Second
 	pingInterval = 30 * time.Second
 
-	lastMoveTime time.Time
-	moveMu       sync.Mutex
-	moveInterval = 10 * time.Millisecond
 	clipboardMu  sync.Mutex
+	automationMu sync.Mutex
+
+	bluetoothCacheMu sync.Mutex
+	bluetoothCacheAt time.Time
+	bluetoothCache   bluetoothCapabilities
 )
 
 var vkMap = map[string]uint8{
@@ -254,8 +264,8 @@ func getClipboardTextUnlocked() string {
 	defer procGlobalUnlock.Call(handle)
 
 	runes := make([]uint16, 0, 256)
-	for i := uintptr(0); i < maxClipboardRunes*2; i += 2 {
-		ch := *(*uint16)(unsafe.Pointer(ptr + i))
+	buffer := unsafe.Slice((*uint16)(unsafe.Pointer(ptr)), maxClipboardRunes)
+	for _, ch := range buffer {
 		if ch == 0 {
 			break
 		}
@@ -291,9 +301,8 @@ func setClipboardTextUnlocked(text string) bool {
 		return false
 	}
 
-	for i, ch := range utf16 {
-		*(*uint16)(unsafe.Pointer(ptr + uintptr(i*2))) = ch
-	}
+	buffer := unsafe.Slice((*uint16)(unsafe.Pointer(ptr)), len(utf16))
+	copy(buffer, utf16)
 	procGlobalUnlock.Call(handle)
 
 	if !openClipboardWithRetry() {
@@ -324,6 +333,9 @@ func openClipboardWithRetry() bool {
 }
 
 func typeText(text string, pressEnter bool) {
+	automationMu.Lock()
+	defer automationMu.Unlock()
+
 	text = trimRunes(text, maxTextRunes)
 	if text == "" {
 		return
@@ -369,6 +381,9 @@ func getActiveWindowTitle() string {
 }
 
 func getCurrentTabInfo() (string, string) {
+	automationMu.Lock()
+	defer automationMu.Unlock()
+
 	clipboardMu.Lock()
 	oldClip := getClipboardTextUnlocked()
 
@@ -389,44 +404,161 @@ func getCurrentTabInfo() (string, string) {
 }
 
 type ipCandidate struct {
-	ip    net.IP
-	iface net.Interface
-	score int
+	ip        net.IP
+	iface     net.Interface
+	score     int
+	kind      string
+	advertise bool
+	bluetooth bool
 }
 
-func getLocalIP() string {
-	preferred := getOutboundIPv4()
-	candidates := collectIPv4Candidates(preferred)
-	if len(candidates) == 0 {
-		if preferred != nil && isUsableIPv4(preferred) {
-			return preferred.String()
+type ConnectionOption struct {
+	Label       string
+	Interface   string
+	AppURL      string
+	QRData      string
+	Recommended bool
+	Bluetooth   bool
+}
+
+type QRPageData struct {
+	Options       []ConnectionOption
+	FirewallReady bool
+	HasBluetooth  bool
+}
+
+type bluetoothCapabilities struct {
+	AdapterPresent    bool
+	PANServicePresent bool
+}
+
+type BluetoothStatus struct {
+	AdapterPresent      bool   `json:"adapterPresent"`
+	PANServicePresent   bool   `json:"panServicePresent"`
+	InterfacePresent    bool   `json:"interfacePresent"`
+	Connected           bool   `json:"connected"`
+	Interface           string `json:"interface,omitempty"`
+	AppURL              string `json:"appURL,omitempty"`
+	AutoOpenRecommended bool   `json:"autoOpenRecommended"`
+}
+
+func hasBluetoothOption(options []ConnectionOption) bool {
+	for _, option := range options {
+		if option.Bluetooth {
+			return true
 		}
-		return "127.0.0.1"
+	}
+	return false
+}
+
+func getBluetoothStatus(port int) BluetoothStatus {
+	capabilities := getBluetoothCapabilities()
+	status := BluetoothStatus{
+		AdapterPresent:    capabilities.AdapterPresent,
+		PANServicePresent: capabilities.PANServicePresent,
 	}
 
-	best := candidates[0]
-	for _, candidate := range candidates[1:] {
-		if candidate.score > best.score {
-			best = candidate
+	hasWiFiInterface := false
+	ifaces, err := net.Interfaces()
+	if err == nil {
+		for _, iface := range ifaces {
+			_, _, _, bluetooth := classifyInterface(iface.Name)
+			if bluetooth {
+				status.InterfacePresent = true
+				if status.Interface == "" {
+					status.Interface = iface.Name
+				}
+			}
+			kind, _, _, _ := classifyInterface(iface.Name)
+			if kind == "Wi-Fi" {
+				hasWiFiInterface = true
+			}
 		}
 	}
-	return best.ip.String()
+
+	for _, candidate := range collectIPv4Candidates() {
+		if !candidate.bluetooth || !candidate.advertise {
+			continue
+		}
+		status.Connected = true
+		status.Interface = candidate.iface.Name
+		status.AppURL = fmt.Sprintf("http://%s:%d", candidate.ip.String(), port)
+		break
+	}
+
+	status.AutoOpenRecommended = status.PANServicePresent && !status.Connected && !hasWiFiInterface
+	return status
 }
 
-func getOutboundIPv4() net.IP {
-	conn, err := net.DialTimeout("udp4", "8.8.8.8:80", 600*time.Millisecond)
-	if err != nil {
-		return nil
+func getBluetoothCapabilities() bluetoothCapabilities {
+	bluetoothCacheMu.Lock()
+	defer bluetoothCacheMu.Unlock()
+
+	if !bluetoothCacheAt.IsZero() && time.Since(bluetoothCacheAt) < bluetoothCacheTTL {
+		return bluetoothCache
 	}
-	defer conn.Close()
-	addr, ok := conn.LocalAddr().(*net.UDPAddr)
-	if !ok || !isUsableIPv4(addr.IP) {
-		return nil
+
+	out, err := exec.Command("pnputil", "/enum-devices", "/class", "Bluetooth", "/connected").CombinedOutput()
+	if err == nil {
+		bluetoothCache = parseBluetoothCapabilities(string(out))
 	}
-	return addr.IP.To4()
+	bluetoothCacheAt = time.Now()
+	return bluetoothCache
 }
 
-func collectIPv4Candidates(preferred net.IP) []ipCandidate {
+func parseBluetoothCapabilities(output string) bluetoothCapabilities {
+	lower := strings.ToLower(output)
+	panServicePresent := strings.Contains(lower, "{00001116-0000-1000-8000-00805f9b34fb}") ||
+		strings.Contains(lower, "personal area network nap service")
+	adapterPresent := panServicePresent ||
+		strings.Contains(lower, "bluetooth adapter") ||
+		strings.Contains(lower, "bth\\ms_bthbrb")
+	return bluetoothCapabilities{
+		AdapterPresent:    adapterPresent,
+		PANServicePresent: panServicePresent,
+	}
+}
+
+func getConnectionOptions(port int) []ConnectionOption {
+	candidates := collectIPv4Candidates()
+	options := make([]ConnectionOption, 0, len(candidates))
+
+	for _, candidate := range candidates {
+		if !candidate.advertise {
+			continue
+		}
+		appURL := fmt.Sprintf("http://%s:%d", candidate.ip.String(), port)
+		png, err := qrcode.Encode(appURL, qrcode.Medium, 256)
+		if err != nil {
+			log.Printf("QR encode error for %s: %v", appURL, err)
+			continue
+		}
+		options = append(options, ConnectionOption{
+			Label:       candidate.kind,
+			Interface:   candidate.iface.Name,
+			AppURL:      appURL,
+			QRData:      base64.StdEncoding.EncodeToString(png),
+			Recommended: len(options) == 0,
+			Bluetooth:   candidate.bluetooth,
+		})
+	}
+
+	if len(options) == 0 {
+		appURL := fmt.Sprintf("http://127.0.0.1:%d", port)
+		png, _ := qrcode.Encode(appURL, qrcode.Medium, 256)
+		options = append(options, ConnectionOption{
+			Label:       "이 PC에서만",
+			Interface:   "Loopback",
+			AppURL:      appURL,
+			QRData:      base64.StdEncoding.EncodeToString(png),
+			Recommended: true,
+		})
+	}
+
+	return options
+}
+
+func collectIPv4Candidates() []ipCandidate {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return nil
@@ -454,10 +586,8 @@ func collectIPv4Candidates(preferred net.IP) []ipCandidate {
 			}
 			seen[key] = true
 
-			score := 0
-			if preferred != nil && ip.Equal(preferred) {
-				score += 60
-			}
+			kind, baseScore, advertise, bluetooth := classifyInterface(iface.Name)
+			score := baseScore
 			if ip.IsPrivate() {
 				score += 40
 			}
@@ -467,11 +597,20 @@ func collectIPv4Candidates(preferred net.IP) []ipCandidate {
 			if iface.Flags&net.FlagPointToPoint != 0 {
 				score -= 25
 			}
-			score += interfaceNameScore(iface.Name)
 
-			candidates = append(candidates, ipCandidate{ip: ip, iface: iface, score: score})
+			candidates = append(candidates, ipCandidate{
+				ip: ip, iface: iface, score: score, kind: kind,
+				advertise: advertise, bluetooth: bluetooth,
+			})
 		}
 	}
+
+	sort.SliceStable(candidates, func(i, j int) bool {
+		if candidates[i].score == candidates[j].score {
+			return candidates[i].ip.String() < candidates[j].ip.String()
+		}
+		return candidates[i].score > candidates[j].score
+	})
 	return candidates
 }
 
@@ -486,25 +625,33 @@ func isUsableIPv4(ip net.IP) bool {
 		!(ip4[0] == 169 && ip4[1] == 254)
 }
 
-func interfaceNameScore(name string) int {
+func classifyInterface(name string) (kind string, score int, advertise bool, bluetooth bool) {
 	lower := strings.ToLower(name)
-	virtualTerms := []string{
-		"bluetooth", "docker", "hyper-v", "loopback", "npcap",
-		"tap", "tailscale", "tun", "virtual", "vbox", "vmware",
-		"vpn", "wintun", "wsl", "zerotier",
+	if containsAny(lower, []string{"bluetooth", "블루투스"}) {
+		return "Bluetooth PAN", 70, true, true
 	}
-	for _, term := range virtualTerms {
-		if strings.Contains(lower, term) {
-			return -60
+	if containsAny(lower, []string{"docker", "hyper-v", "loopback", "npcap", "virtual", "vbox", "vethernet", "vmware", "wsl"}) {
+		return "내부 가상 네트워크", -80, false, false
+	}
+	if containsAny(lower, []string{"ethernet", "이더넷", "로컬 영역"}) || strings.TrimSpace(lower) == "lan" {
+		return "유선 LAN", 100, true, false
+	}
+	if containsAny(lower, []string{"wi-fi", "wifi", "wireless", "wlan", "무선"}) {
+		return "Wi-Fi", 90, true, false
+	}
+	if containsAny(lower, []string{"tailscale", "zerotier", "vpn", "wintun", "tun", "tap"}) {
+		return "VPN / 오버레이 네트워크", 35, true, false
+	}
+	return "기타 네트워크", 25, true, false
+}
+
+func containsAny(value string, terms []string) bool {
+	for _, term := range terms {
+		if strings.Contains(value, term) {
+			return true
 		}
 	}
-	preferredTerms := []string{"ethernet", "lan", "wi-fi", "wifi", "wireless", "wlan", "이더넷", "무선", "로컬 영역"}
-	for _, term := range preferredTerms {
-		if strings.Contains(lower, term) {
-			return 20
-		}
-	}
-	return 0
+	return false
 }
 
 var upgrader = websocket.Upgrader{
@@ -540,6 +687,11 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
+	if tcpConn, ok := conn.UnderlyingConn().(*net.TCPConn); ok {
+		_ = tcpConn.SetNoDelay(true)
+		_ = tcpConn.SetKeepAlive(true)
+		_ = tcpConn.SetKeepAlivePeriod(30 * time.Second)
+	}
 
 	client := &Client{conn: conn}
 	conn.SetReadLimit(maxMessageBytes)
@@ -597,15 +749,6 @@ func handleEvent(client *Client, msg WSMessage) {
 
 	switch msg.Event {
 	case "move":
-		moveMu.Lock()
-		now := time.Now()
-		if now.Sub(lastMoveTime) < moveInterval {
-			moveMu.Unlock()
-			return
-		}
-		lastMoveTime = now
-		moveMu.Unlock()
-
 		dx, okX := toFloat(data["dx"])
 		dy, okY := toFloat(data["dy"])
 		if okX || okY {
@@ -625,7 +768,7 @@ func handleEvent(client *Client, msg WSMessage) {
 	case "type":
 		text, _ := data["text"].(string)
 		pressEnter, _ := data["pressEnter"].(bool)
-		typeText(text, pressEnter)
+		go typeText(text, pressEnter)
 
 	case "key":
 		key, _ := data["key"].(string)
@@ -638,13 +781,15 @@ func handleEvent(client *Client, msg WSMessage) {
 		handleSystemEvent(client, data)
 
 	case "get_current_tab":
-		tabURL, title := getCurrentTabInfo()
-		if err := client.SendEvent("current_tab", map[string]string{
-			"url":   tabURL,
-			"title": title,
-		}); err != nil {
-			log.Println("current_tab send error:", err)
-		}
+		go func() {
+			tabURL, title := getCurrentTabInfo()
+			if err := client.SendEvent("current_tab", map[string]string{
+				"url":   tabURL,
+				"title": title,
+			}); err != nil {
+				log.Println("current_tab send error:", err)
+			}
+		}()
 
 	case "open":
 		urlVal, _ := data["url"].(string)
@@ -863,60 +1008,124 @@ func openLocalQRPage(port int) {
 	}
 }
 
-func ensureFirewallRules(port int) {
-	exePath, err := os.Executable()
-	if err != nil {
-		log.Println("firewall setup skipped:", err)
-		return
-	}
-	if !strings.HasSuffix(strings.ToLower(exePath), ".exe") {
-		return
-	}
-
+func setupFirewallRule() error {
 	for _, name := range []string{
-		"Air Mouse",
-		"AirMouse",
-		"AirMouse.exe",
-		"Air Controller",
-		"AirController",
-		"AirController.exe",
-		"Air Mouse Port",
-		"AirMouse Port",
-		"Air Controller Port",
-		"AirController Port",
+		"Air Mouse", "AirMouse", "AirMouse.exe", "Air Mouse Port", "AirMouse Port",
+		"Air Controller", "AirController", "AirController.exe", "Air Controller Port", "AirController Port",
 	} {
 		_ = runNetsh("advfirewall", "firewall", "delete", "rule", "name="+name)
 	}
-
-	if err := runNetsh(
+	_ = runNetsh("advfirewall", "firewall", "delete", "rule", "name="+firewallRuleName)
+	return runNetsh(
 		"advfirewall", "firewall", "add", "rule",
-		"name=Air Mouse",
-		"dir=in",
-		"action=allow",
-		"program="+exePath,
-		"enable=yes",
-		"profile=any",
-		"protocol=TCP",
-	); err != nil {
-		log.Println("firewall setup failed; run AirMouse.exe as administrator once or allow it in Windows Firewall:", err)
-		return
-	}
-
-	if err := runNetsh(
-		"advfirewall", "firewall", "add", "rule",
-		"name=Air Mouse Port",
+		"name="+firewallRuleName,
 		"dir=in",
 		"action=allow",
 		"enable=yes",
 		"profile=any",
 		"protocol=TCP",
-		"localport="+strconv.Itoa(port),
-	); err != nil {
-		log.Println("firewall port setup failed; allow TCP port manually if phone cannot connect:", err)
+		"localport="+firewallPortRange,
+		"remoteip=LocalSubnet",
+		"edge=no",
+	)
+}
+
+func firewallRuleConfigured() bool {
+	return runNetsh("advfirewall", "firewall", "show", "rule", "name="+firewallRuleName) == nil
+}
+
+func launchElevatedFirewallSetup() error {
+	exePath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	verb, _ := syscall.UTF16PtrFromString("runas")
+	file, _ := syscall.UTF16PtrFromString(exePath)
+	params, _ := syscall.UTF16PtrFromString("--setup-firewall")
+	result, _, callErr := procShellExecuteW.Call(
+		0,
+		uintptr(unsafe.Pointer(verb)),
+		uintptr(unsafe.Pointer(file)),
+		uintptr(unsafe.Pointer(params)),
+		0,
+		swHide,
+	)
+	if result <= 32 {
+		return fmt.Errorf("elevation request failed (%d): %v", result, callErr)
+	}
+	return nil
+}
+
+func openBluetoothSettings() error {
+	verb, _ := syscall.UTF16PtrFromString("open")
+	target, _ := syscall.UTF16PtrFromString("ms-settings:connecteddevices")
+	result, _, callErr := procShellExecuteW.Call(
+		0,
+		uintptr(unsafe.Pointer(verb)),
+		uintptr(unsafe.Pointer(target)),
+		0,
+		0,
+		swShowNormal,
+	)
+	if result <= 32 {
+		return fmt.Errorf("Bluetooth settings could not be opened (%d): %v", result, callErr)
+	}
+	return nil
+}
+
+func isLoopbackRequest(r *http.Request) bool {
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return false
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
+}
+
+func handleFirewallSetup(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	if !isLoopbackRequest(r) {
+		http.Error(w, "firewall setup is only available on this PC", http.StatusForbidden)
+		return
+	}
+	if !checkWSOrigin(r) {
+		http.Error(w, "invalid origin", http.StatusForbidden)
+		return
+	}
+	if firewallRuleConfigured() {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if err := launchElevatedFirewallSetup(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
+}
 
-	log.Printf("Firewall rules ready: Air Mouse, Air Mouse Port %d", port)
+func handleBluetoothOpenSettings(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if !isLoopbackRequest(r) {
+		http.Error(w, "Bluetooth setup is only available on this PC", http.StatusForbidden)
+		return
+	}
+	if !checkWSOrigin(r) {
+		http.Error(w, "invalid origin", http.StatusForbidden)
+		return
+	}
+	if err := openBluetoothSettings(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func runNetsh(args ...string) error {
@@ -931,14 +1140,30 @@ func runNetsh(args ...string) error {
 	return nil
 }
 
+func hasArg(name string) bool {
+	for _, arg := range os.Args[1:] {
+		if arg == name {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
+	if hasArg("--setup-firewall") {
+		if err := setupFirewallRule(); err != nil {
+			log.Fatal("firewall setup failed: ", err)
+		}
+		return
+	}
+
 	listener, port, err := listenOnAvailablePort(defaultPort, portAttempts)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	localIP := getLocalIP()
-	serverURL := fmt.Sprintf("http://%s:%d", localIP, port)
+	connectionOptions := getConnectionOptions(port)
+	serverURL := connectionOptions[0].AppURL
 
 	indexTmpl := template.Must(template.ParseFS(templatesFS, "templates/index.html"))
 	qrTmpl := template.Must(template.ParseFS(templatesFS, "templates/qr.html"))
@@ -952,21 +1177,39 @@ func main() {
 			http.NotFound(w, r)
 			return
 		}
-		renderTemplate(w, indexTmpl, map[string]string{"ServerURL": serverURL})
+		renderTemplate(w, indexTmpl, map[string]string{"ServerURL": "http://" + r.Host})
 	})
 
 	mux.HandleFunc("/qr", func(w http.ResponseWriter, r *http.Request) {
-		png, err := qrcode.Encode(serverURL, qrcode.Medium, 256)
-		if err != nil {
-			http.Error(w, "failed to generate QR code", http.StatusInternalServerError)
-			log.Println("QR encode error:", err)
+		if !isLoopbackRequest(r) {
+			http.Error(w, "connection setup is only available on this PC", http.StatusForbidden)
 			return
 		}
-		renderTemplate(w, qrTmpl, map[string]string{
-			"AppURL": serverURL,
-			"QRData": base64.StdEncoding.EncodeToString(png),
+		options := getConnectionOptions(port)
+		renderTemplate(w, qrTmpl, QRPageData{
+			Options:       options,
+			FirewallReady: firewallRuleConfigured(),
+			HasBluetooth:  hasBluetoothOption(options),
 		})
 	})
+	mux.HandleFunc("/firewall/setup", handleFirewallSetup)
+	mux.HandleFunc("/bluetooth/status", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", "GET")
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		if !isLoopbackRequest(r) {
+			http.Error(w, "Bluetooth status is only available on this PC", http.StatusForbidden)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		if err := json.NewEncoder(w).Encode(getBluetoothStatus(port)); err != nil {
+			log.Println("Bluetooth status response error:", err)
+		}
+	})
+	mux.HandleFunc("/bluetooth/open-settings", handleBluetoothOpenSettings)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
@@ -986,14 +1229,15 @@ func main() {
 	if port != defaultPort {
 		fmt.Printf("Port %d was busy; using %d instead.\n", defaultPort, port)
 	}
-	fmt.Println("Open this URL on a phone/tablet on the same network.")
+	fmt.Println("Open the local QR page to choose LAN, Wi-Fi, hotspot, VPN, or Bluetooth PAN.")
 	fmt.Printf("Health check: %s/health\n", serverURL)
-	fmt.Println("If the phone cannot open /health, check Wi-Fi/LAN isolation or firewall.")
+	fmt.Println("If the phone cannot open /health, check the selected adapter and the one-time firewall rule.")
 	fmt.Println("========================================")
 	fmt.Println()
 
-	ensureFirewallRules(port)
-	openLocalQRPage(port)
+	if !hasArg("--no-browser") {
+		openLocalQRPage(port)
+	}
 
 	log.Printf("Server running at %s\n", serverURL)
 	if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
