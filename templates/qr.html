@@ -252,7 +252,7 @@
                     <p id="bluetoothMessage">동글과 페어링 상태를 확인하고 있습니다.</p>
                     <div id="bluetoothState" class="bluetooth-state">연결 대기 중</div>
                 </div>
-                <button id="bluetoothButton" type="button">Bluetooth 연결 열기</button>
+                <button id="bluetoothButton" type="button">Windows 장치 열기</button>
             </div>
         </section>
         {{end}}
@@ -283,7 +283,8 @@
         const bluetoothTitle = document.getElementById('bluetoothTitle');
         const bluetoothMessage = document.getElementById('bluetoothMessage');
         const bluetoothState = document.getElementById('bluetoothState');
-        let bluetoothSettingsOpened = false;
+        let bluetoothOpenInProgress = false;
+        let bluetoothAutoAttempted = false;
 
         function connectWS() {
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -316,20 +317,26 @@
         }
 
         async function openBluetoothConnection(autoOpened = false) {
-            if (!bluetoothButton || bluetoothSettingsOpened) return;
-            bluetoothSettingsOpened = true;
+            if (!bluetoothButton || bluetoothOpenInProgress) return;
+            bluetoothOpenInProgress = true;
+            if (autoOpened) bluetoothAutoAttempted = true;
             bluetoothButton.disabled = true;
-            bluetoothButton.textContent = '연결 대기 중';
+            bluetoothButton.textContent = 'Windows 장치 여는 중';
             try {
                 const response = await fetch('/bluetooth/open-settings', { method: 'POST' });
                 if (!response.ok) throw new Error(await response.text());
                 bluetoothState.textContent = autoOpened
-                    ? 'Bluetooth 연결 화면을 자동으로 열었습니다'
-                    : '열린 화면에서 휴대폰의 PAN 연결을 선택하세요';
+                    ? 'Windows 장치 화면을 자동으로 열었습니다'
+                    : 'Windows 장치 화면을 열었습니다';
+                setTimeout(() => {
+                    bluetoothOpenInProgress = false;
+                    bluetoothButton.disabled = false;
+                    bluetoothButton.textContent = '설정 다시 열기';
+                }, 3500);
             } catch (error) {
-                bluetoothSettingsOpened = false;
+                bluetoothOpenInProgress = false;
                 bluetoothButton.disabled = false;
-                bluetoothButton.textContent = 'Bluetooth 연결 열기';
+                bluetoothButton.textContent = 'Windows 장치 열기';
                 bluetoothState.textContent = '설정 화면을 열지 못했습니다';
             }
         }
@@ -350,9 +357,9 @@
                 }
 
                 if (state.panServicePresent) {
-                    bluetoothTitle.textContent = '휴대폰 연결 준비됨';
-                    bluetoothMessage.textContent = '휴대폰에서 Bluetooth 테더링을 켜세요. Windows에서 PAN 연결만 선택하면 QR이 자동으로 나타납니다.';
-                    bluetoothState.textContent = '페어링과 PAN 서비스 확인됨';
+                    bluetoothTitle.textContent = 'S22 페어링 확인됨 · PAN 연결 전';
+                    bluetoothMessage.textContent = '① S22: 설정 → 연결 → 모바일 핫스팟 및 테더링 → Bluetooth 테더링 켜기  ② Windows 장치: S22 오른쪽 ⋯ → 개인 영역 네트워크(PAN) 가입 → 액세스 지점 연결';
+                    bluetoothState.textContent = '연결되면 이 화면의 QR이 자동으로 바뀝니다';
                 } else if (state.adapterPresent || state.interfacePresent) {
                     bluetoothTitle.textContent = 'Bluetooth 동글 준비됨';
                     bluetoothMessage.textContent = '휴대폰을 Windows와 페어링하고 휴대폰의 Bluetooth 테더링을 켜세요.';
@@ -363,7 +370,7 @@
                     bluetoothState.textContent = 'Bluetooth 장치를 찾지 못함';
                 }
 
-                if (state.autoOpenRecommended && !bluetoothSettingsOpened) {
+                if (state.autoOpenRecommended && !bluetoothAutoAttempted) {
                     openBluetoothConnection(true);
                 }
             } catch (_) {

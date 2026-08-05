@@ -1058,7 +1058,7 @@ func launchElevatedFirewallSetup() error {
 
 func openBluetoothSettings() error {
 	verb, _ := syscall.UTF16PtrFromString("open")
-	target, _ := syscall.UTF16PtrFromString("ms-settings:bluetooth")
+	target, _ := syscall.UTF16PtrFromString("ms-settings:connecteddevices")
 	result, _, callErr := procShellExecuteW.Call(
 		0,
 		uintptr(unsafe.Pointer(verb)),

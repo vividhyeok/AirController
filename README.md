@@ -33,8 +33,8 @@ Bluetooth를 직접 제어 프로토콜로 사용하는 것이 아니라, Blueto
 
 1. Windows PC에 블루투스 동글을 연결하고 휴대폰과 페어링합니다.
 2. Android에서는 `Bluetooth 테더링`, iPhone에서는 `개인용 핫스팟`과 Bluetooth 연결을 켭니다.
-3. Air Mouse가 동글·페어링·PAN 상태를 자동으로 감지합니다. Wi-Fi 어댑터가 없고 페어링된 PAN 휴대폰이 있으면 Windows Bluetooth 연결 화면도 자동으로 엽니다.
-4. 열린 화면에서 휴대폰의 `개인 영역 네트워크(PAN)` 연결을 선택합니다.
+3. Air Mouse가 동글·페어링·PAN 상태를 자동으로 감지합니다. Wi-Fi 어댑터가 없고 페어링된 PAN 휴대폰이 있으면 Windows의 `Bluetooth 및 장치 > 장치` 화면도 자동으로 엽니다.
+4. 휴대폰 오른쪽의 `⋯`에서 `개인 영역 네트워크(PAN) 가입 > 액세스 지점 > 연결`을 선택합니다. 설정 창을 닫았으면 Air Mouse의 `설정 다시 열기`를 누르면 됩니다.
 5. 연결이 성립되면 Air Mouse가 별도 새로고침 없이 `Bluetooth PAN` 주소와 QR로 자동 전환합니다.
 
 PC는 인터넷에 유선 LAN으로 연결된 상태여도 괜찮습니다. Air Mouse 조작 트래픽만 Bluetooth PAN을 통해 휴대폰과 오갑니다. Wi-Fi 동글은 필요하지 않습니다.
