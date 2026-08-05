@@ -51,8 +51,28 @@ func TestQRTemplateShowsBluetoothSetupWhenDisconnected(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output.String(), "Bluetooth로 연결하려면") {
+	if !strings.Contains(output.String(), "Bluetooth 연결 준비 중") {
 		t.Fatal("Bluetooth PAN setup guidance was not rendered")
+	}
+}
+
+func TestParseBluetoothCapabilities(t *testing.T) {
+	output := `
+Instance ID: BTHENUM\\{00001116-0000-1000-8000-00805F9B34FB}_LOCALMFG&0002\\8&ABC&0&F0CD310B8084_C00000000
+Device Description: Personal Area Network NAP Service
+Instance ID: USB\\VID_33FA&PID_0001\\5&ABC&0&5
+Device Description: BARROT Bluetooth Adapter
+`
+	got := parseBluetoothCapabilities(output)
+	if !got.AdapterPresent || !got.PANServicePresent {
+		t.Fatalf("parseBluetoothCapabilities() = %+v, want adapter and PAN service", got)
+	}
+}
+
+func TestParseBluetoothCapabilitiesWithoutPAN(t *testing.T) {
+	got := parseBluetoothCapabilities("Device Description: Generic Bluetooth Adapter")
+	if !got.AdapterPresent || got.PANServicePresent {
+		t.Fatalf("parseBluetoothCapabilities() = %+v, want adapter only", got)
 	}
 }
 
@@ -137,6 +157,45 @@ func TestFirewallSetupEndpointGuards(t *testing.T) {
 		req.Header.Set("Origin", "https://example.com")
 
 		handleFirewallSetup(rec, req)
+
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusForbidden)
+		}
+	})
+}
+
+func TestBluetoothOpenSettingsEndpointGuards(t *testing.T) {
+	t.Run("requires POST", func(t *testing.T) {
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/bluetooth/open-settings", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+
+		handleBluetoothOpenSettings(rec, req)
+
+		if rec.Code != http.StatusMethodNotAllowed {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusMethodNotAllowed)
+		}
+	})
+
+	t.Run("rejects remote clients", func(t *testing.T) {
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/bluetooth/open-settings", nil)
+		req.RemoteAddr = "192.0.2.10:12345"
+
+		handleBluetoothOpenSettings(rec, req)
+
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusForbidden)
+		}
+	})
+
+	t.Run("rejects cross origin local requests", func(t *testing.T) {
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "http://127.0.0.1:5000/bluetooth/open-settings", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Set("Origin", "https://example.com")
+
+		handleBluetoothOpenSettings(rec, req)
 
 		if rec.Code != http.StatusForbidden {
 			t.Fatalf("status = %d, want %d", rec.Code, http.StatusForbidden)

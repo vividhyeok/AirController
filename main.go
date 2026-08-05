@@ -77,6 +77,8 @@ const (
 	firewallRuleName     = "AirController Remote"
 	firewallPortRange    = "5000-5019"
 	swHide               = 0
+	swShowNormal         = 1
+	bluetoothCacheTTL    = 10 * time.Second
 )
 
 var (
@@ -86,6 +88,10 @@ var (
 
 	clipboardMu  sync.Mutex
 	automationMu sync.Mutex
+
+	bluetoothCacheMu sync.Mutex
+	bluetoothCacheAt time.Time
+	bluetoothCache   bluetoothCapabilities
 )
 
 var vkMap = map[string]uint8{
@@ -421,6 +427,21 @@ type QRPageData struct {
 	HasBluetooth  bool
 }
 
+type bluetoothCapabilities struct {
+	AdapterPresent    bool
+	PANServicePresent bool
+}
+
+type BluetoothStatus struct {
+	AdapterPresent      bool   `json:"adapterPresent"`
+	PANServicePresent   bool   `json:"panServicePresent"`
+	InterfacePresent    bool   `json:"interfacePresent"`
+	Connected           bool   `json:"connected"`
+	Interface           string `json:"interface,omitempty"`
+	AppURL              string `json:"appURL,omitempty"`
+	AutoOpenRecommended bool   `json:"autoOpenRecommended"`
+}
+
 func hasBluetoothOption(options []ConnectionOption) bool {
 	for _, option := range options {
 		if option.Bluetooth {
@@ -428,6 +449,74 @@ func hasBluetoothOption(options []ConnectionOption) bool {
 		}
 	}
 	return false
+}
+
+func getBluetoothStatus(port int) BluetoothStatus {
+	capabilities := getBluetoothCapabilities()
+	status := BluetoothStatus{
+		AdapterPresent:    capabilities.AdapterPresent,
+		PANServicePresent: capabilities.PANServicePresent,
+	}
+
+	hasWiFiInterface := false
+	ifaces, err := net.Interfaces()
+	if err == nil {
+		for _, iface := range ifaces {
+			_, _, _, bluetooth := classifyInterface(iface.Name)
+			if bluetooth {
+				status.InterfacePresent = true
+				if status.Interface == "" {
+					status.Interface = iface.Name
+				}
+			}
+			kind, _, _, _ := classifyInterface(iface.Name)
+			if kind == "Wi-Fi" {
+				hasWiFiInterface = true
+			}
+		}
+	}
+
+	for _, candidate := range collectIPv4Candidates() {
+		if !candidate.bluetooth || !candidate.advertise {
+			continue
+		}
+		status.Connected = true
+		status.Interface = candidate.iface.Name
+		status.AppURL = fmt.Sprintf("http://%s:%d", candidate.ip.String(), port)
+		break
+	}
+
+	status.AutoOpenRecommended = status.PANServicePresent && !status.Connected && !hasWiFiInterface
+	return status
+}
+
+func getBluetoothCapabilities() bluetoothCapabilities {
+	bluetoothCacheMu.Lock()
+	defer bluetoothCacheMu.Unlock()
+
+	if !bluetoothCacheAt.IsZero() && time.Since(bluetoothCacheAt) < bluetoothCacheTTL {
+		return bluetoothCache
+	}
+
+	out, err := exec.Command("pnputil", "/enum-devices", "/class", "Bluetooth", "/connected").CombinedOutput()
+	if err == nil {
+		bluetoothCache = parseBluetoothCapabilities(string(out))
+	}
+	bluetoothCacheAt = time.Now()
+	return bluetoothCache
+}
+
+func parseBluetoothCapabilities(output string) bluetoothCapabilities {
+	lower := strings.ToLower(output)
+	panServicePresent := strings.Contains(lower, "{00001116-0000-1000-8000-00805f9b34fb}") ||
+		strings.Contains(lower, "personal area network nap service")
+	adapterPresent := panServicePresent ||
+		strings.Contains(lower, "bluetooth adapter") ||
+		strings.Contains(lower, "bth\\ms_bthbrb")
+	return bluetoothCapabilities{
+		AdapterPresent:    adapterPresent,
+		PANServicePresent: panServicePresent,
+	}
 }
 
 func getConnectionOptions(port int) []ConnectionOption {
@@ -967,6 +1056,23 @@ func launchElevatedFirewallSetup() error {
 	return nil
 }
 
+func openBluetoothSettings() error {
+	verb, _ := syscall.UTF16PtrFromString("open")
+	target, _ := syscall.UTF16PtrFromString("ms-settings:bluetooth")
+	result, _, callErr := procShellExecuteW.Call(
+		0,
+		uintptr(unsafe.Pointer(verb)),
+		uintptr(unsafe.Pointer(target)),
+		0,
+		0,
+		swShowNormal,
+	)
+	if result <= 32 {
+		return fmt.Errorf("Bluetooth settings could not be opened (%d): %v", result, callErr)
+	}
+	return nil
+}
+
 func isLoopbackRequest(r *http.Request) bool {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
@@ -999,6 +1105,27 @@ func handleFirewallSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func handleBluetoothOpenSettings(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", "POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if !isLoopbackRequest(r) {
+		http.Error(w, "Bluetooth setup is only available on this PC", http.StatusForbidden)
+		return
+	}
+	if !checkWSOrigin(r) {
+		http.Error(w, "invalid origin", http.StatusForbidden)
+		return
+	}
+	if err := openBluetoothSettings(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func runNetsh(args ...string) error {
@@ -1066,6 +1193,23 @@ func main() {
 		})
 	})
 	mux.HandleFunc("/firewall/setup", handleFirewallSetup)
+	mux.HandleFunc("/bluetooth/status", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", "GET")
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		if !isLoopbackRequest(r) {
+			http.Error(w, "Bluetooth status is only available on this PC", http.StatusForbidden)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		if err := json.NewEncoder(w).Encode(getBluetoothStatus(port)); err != nil {
+			log.Println("Bluetooth status response error:", err)
+		}
+	})
+	mux.HandleFunc("/bluetooth/open-settings", handleBluetoothOpenSettings)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
