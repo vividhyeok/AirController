@@ -11,6 +11,7 @@
             --surface-2: #22282e;
             --primary: #7fb2ff;
             --ok: #8de0c8;
+            --warn: #f0c987;
             --text: #f5f7fa;
             --muted: #9ca6b2;
             --border: rgba(255,255,255,0.09);
@@ -24,26 +25,24 @@
         body {
             margin: 0;
             min-height: 100vh;
-            display: grid;
-            place-items: center;
             padding: 24px;
             background: var(--bg);
             color: var(--text);
         }
 
-        .card {
-            width: min(420px, 100%);
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 28px;
+        .page {
+            width: min(980px, 100%);
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 22px;
             text-align: center;
         }
 
         h1 {
             margin: 0 0 8px;
             font-size: 24px;
-            letter-spacing: 0;
         }
 
         p {
@@ -53,35 +52,131 @@
             line-height: 1.55;
         }
 
+        .connections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+        }
+
+        .connection,
+        .firewall,
+        .bluetooth-help {
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: var(--surface);
+        }
+
+        .connection-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .connection-head strong {
+            font-size: 16px;
+        }
+
+        .tag {
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(127,178,255,.14);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .interface {
+            margin-top: 5px;
+            overflow: hidden;
+            color: var(--muted);
+            font-size: 12px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .qr-frame {
-            margin: 24px auto 18px;
             width: fit-content;
-            padding: 12px;
-            border-radius: 16px;
+            margin: 18px auto 14px;
+            padding: 10px;
+            border-radius: 14px;
             background: #fff;
         }
 
         .qr-frame img {
             display: block;
-            width: 190px;
-            height: 190px;
+            width: 178px;
+            height: 178px;
         }
 
         .url-pill {
             display: block;
             width: 100%;
-            padding: 13px 14px;
-            border-radius: 12px;
-            background: var(--surface-2);
+            padding: 12px;
+            overflow-wrap: anywhere;
             border: 1px solid var(--border);
+            border-radius: 11px;
+            background: var(--surface-2);
             color: var(--primary);
             font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-            font-size: 13px;
-            overflow-wrap: anywhere;
+            font-size: 12px;
+            text-align: center;
+            text-decoration: none;
         }
 
+        .bluetooth-note {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .firewall {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .bluetooth-help {
+            margin-top: 14px;
+        }
+
+        .bluetooth-help strong {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .firewall strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .firewall.ready strong { color: var(--ok); }
+        .firewall.pending strong { color: var(--warn); }
+
+        button {
+            flex-shrink: 0;
+            min-height: 42px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 11px;
+            background: var(--primary);
+            color: #101214;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        button:disabled { opacity: .55; cursor: wait; }
+
         .status {
-            margin-top: 18px;
+            margin-top: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -98,58 +193,98 @@
             background: #e35d5d;
         }
 
-        .status-dot.online {
-            background: var(--ok);
-        }
+        .status-dot.online { background: var(--ok); }
 
-        .note {
-            margin-top: 18px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            text-align: left;
-            color: var(--muted);
-            font-size: 12px;
-            line-height: 1.55;
+        @media (max-width: 560px) {
+            body { padding: 16px; }
+            .firewall { align-items: stretch; flex-direction: column; }
+            .firewall button { width: 100%; }
         }
     </style>
 </head>
 <body>
-    <main class="card">
-        <h1>Air Mouse</h1>
-        <p>휴대폰이나 태블릿으로 아래 QR을 스캔하거나 주소를 직접 열어 연결합니다.</p>
+    <main class="page">
+        <header>
+            <h1>Air Mouse</h1>
+            <p>휴대폰과 PC가 함께 연결된 방식을 골라 QR을 스캔하세요.</p>
+        </header>
 
-        <div class="qr-frame">
-            <img src="data:image/png;base64,{{.QRData}}" alt="Air Mouse QR Code">
+        <div class="connections">
+            {{range .Options}}
+            <section class="connection">
+                <div class="connection-head">
+                    <strong>{{.Label}}</strong>
+                    {{if .Recommended}}<span class="tag">추천</span>{{end}}
+                </div>
+                <div class="interface">{{.Interface}}</div>
+                <div class="qr-frame">
+                    <img src="data:image/png;base64,{{.QRData}}" alt="{{.Label}} 연결 QR 코드">
+                </div>
+                <a class="url-pill" href="{{.AppURL}}">{{.AppURL}}</a>
+                {{if .Bluetooth}}
+                <div class="bluetooth-note">휴대폰의 Bluetooth 테더링 또는 개인용 핫스팟을 켜고 Windows에서 Bluetooth PAN에 연결한 뒤 사용하세요.</div>
+                {{end}}
+            </section>
+            {{end}}
         </div>
 
-        <div class="url-pill">{{.AppURL}}</div>
+        {{if not .HasBluetooth}}
+        <section class="bluetooth-help">
+            <strong>Bluetooth로 연결하려면</strong>
+            <p>휴대폰과 PC를 페어링한 뒤 Bluetooth 테더링/개인용 핫스팟과 Windows의 개인 영역 네트워크(PAN)를 연결하세요. 이 페이지를 새로고침하면 Bluetooth PAN QR이 자동으로 추가됩니다.</p>
+        </section>
+        {{end}}
+
+        {{if .FirewallReady}}
+        <section class="firewall ready">
+            <div><strong>방화벽 준비됨</strong><p>로컬 네트워크에서 사용하는 포트 범위가 한 번만 등록되어 있습니다.</p></div>
+        </section>
+        {{else}}
+        <section class="firewall pending">
+            <div><strong>방화벽 설정 필요</strong><p>연결이 안 될 때만 한 번 설정하세요. 실행할 때마다 규칙을 다시 만들지 않습니다.</p></div>
+            <button id="firewallButton" type="button">한 번만 허용</button>
+        </section>
+        {{end}}
 
         <div class="status">
             <span id="statusDot" class="status-dot"></span>
-            <span id="statusText">PC 로컬 연결 확인 중</span>
-        </div>
-
-        <div class="note">
-            PC 브라우저에서 연결됨으로 보여도 휴대폰이 계속 로딩되면 휴대폰이 같은 네트워크에 있는지, Windows 방화벽에서 Air Mouse 또는 현재 포트가 허용되어 있는지 확인하세요.
+            <span id="statusText">앱 상태 확인 중</span>
         </div>
     </main>
 
     <script>
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
+        const firewallButton = document.getElementById('firewallButton');
 
         function connectWS() {
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const ws = new WebSocket(proto + '//' + location.host + '/ws');
             ws.onopen = () => {
                 statusDot.classList.add('online');
-                statusText.textContent = 'PC 로컬 연결됨';
+                statusText.textContent = 'Air Mouse 실행 중';
             };
             ws.onclose = () => {
                 statusDot.classList.remove('online');
-                statusText.textContent = 'PC 로컬 연결 대기 중';
+                statusText.textContent = '앱 연결 대기 중';
                 setTimeout(connectWS, 2500);
             };
+        }
+
+        if (firewallButton) {
+            firewallButton.addEventListener('click', async () => {
+                firewallButton.disabled = true;
+                firewallButton.textContent = 'Windows 승인 대기 중';
+                try {
+                    const response = await fetch('/firewall/setup', { method: 'POST' });
+                    if (!response.ok) throw new Error(await response.text());
+                    setTimeout(() => location.reload(), 3000);
+                } catch (error) {
+                    alert('방화벽 설정을 시작하지 못했습니다.\n' + error.message);
+                    firewallButton.disabled = false;
+                    firewallButton.textContent = '한 번만 허용';
+                }
+            });
         }
 
         connectWS();

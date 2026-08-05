@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - master
+      - "agent/**"
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -17,35 +19,47 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: true
 
-      - name: Test
-        run: go test ./...
-
-      - name: Build AirMouse.exe
+      - name: Set up WiX 3.14.1
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          go build -ldflags "-s -w" -o dist/AirMouse.exe .
-          Compress-Archive -Path dist/AirMouse.exe -DestinationPath dist/AirMouse-windows-amd64.zip -Force
+          $archive = Join-Path $env:RUNNER_TEMP "wix314-binaries.zip"
+          $wixBin = Join-Path $env:RUNNER_TEMP "wix314"
+          Invoke-WebRequest `
+            -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip" `
+            -OutFile $archive
+          $expected = "6AC824E1642D6F7277D0ED7EA09411A508F6116BA6FAE0AA5F2C7DAA2FF43D31"
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash
+          if ($actual -ne $expected) {
+            throw "WiX archive checksum mismatch: $actual"
+          }
+          Expand-Archive -LiteralPath $archive -DestinationPath $wixBin
+          "WIX_BIN=$wixBin" >> $env:GITHUB_ENV
+
+      - name: Build EXE, ZIP, and MSI
+        shell: pwsh
+        run: ./scripts/build-release.ps1 -ProductVersion "1.1.${{ github.run_number }}"
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AirMouse-windows-amd64
           path: |
             dist/AirMouse.exe
             dist/AirMouse-windows-amd64.zip
+            dist/AirMouse-Setup-x64.msi
 
       - name: Update latest release
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -69,7 +83,8 @@ jobs:
               --target $env:GITHUB_SHA `
               --latest `
               dist/AirMouse.exe `
-              dist/AirMouse-windows-amd64.zip
+              dist/AirMouse-windows-amd64.zip `
+              dist/AirMouse-Setup-x64.msi
           } else {
             gh release edit latest `
               --title "Latest Windows Build" `
@@ -78,5 +93,6 @@ jobs:
             gh release upload latest `
               dist/AirMouse.exe `
               dist/AirMouse-windows-amd64.zip `
+              dist/AirMouse-Setup-x64.msi `
               --clobber
           }

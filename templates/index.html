@@ -172,7 +172,12 @@
                 <section class="section">
                     <div class="section-head">
                         <h2>즐겨찾기</h2>
-                        <button class="text-action" type="button" onclick="clearFavorites()">비우기</button>
+                        <div class="section-actions">
+                            <button class="text-action" type="button" onclick="exportPersonalization()">백업</button>
+                            <button class="text-action" type="button" onclick="document.getElementById('personalizationFile').click()">복원</button>
+                            <button class="text-action" type="button" onclick="clearFavorites()">비우기</button>
+                            <input id="personalizationFile" type="file" accept="application/json,.json" hidden onchange="importPersonalization(event)">
+                        </div>
                     </div>
                     <div id="favoritesList" class="site-list"></div>
                 </section>
@@ -198,13 +203,13 @@
         </main>
 
         <nav class="tab-bar">
-            <button class="nav-item active" type="button" onclick="switchTab('touch', this)">
+            <button class="nav-item active" type="button" data-tab="touch" onclick="switchTab('touch', this)">
                 <span class="nav-icon icon i-touch"></span><span>Touch</span>
             </button>
-            <button class="nav-item" type="button" onclick="switchTab('input', this)">
+            <button class="nav-item" type="button" data-tab="input" onclick="switchTab('input', this)">
                 <span class="nav-icon icon i-keyboard"></span><span>Input</span>
             </button>
-            <button class="nav-item" type="button" onclick="switchTab('apps', this)">
+            <button class="nav-item" type="button" data-tab="apps" onclick="switchTab('apps', this)">
                 <span class="nav-icon icon i-apps"></span><span>Apps</span>
             </button>
         </nav>
